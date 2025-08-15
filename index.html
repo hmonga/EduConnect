@@ -957,7 +957,75 @@
                 document.getElementById('accelerometer').insertBefore(infoDiv, document.getElementById('accel-debug'));
                 document.getElementById('gyroscope').insertBefore(infoDiv.cloneNode(true), document.getElementById('gyro-debug'));
             }
+            
+            // Add desktop demo mode
+            if (!/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                const demoDiv = document.createElement('div');
+                demoDiv.className = 'warning';
+                demoDiv.innerHTML = '<strong>🖥️ Desktop Detected:</strong> You\'re testing on desktop. Sensor APIs may not provide real data. <button onclick="startDemoMode()" style="margin-left: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Start Demo Mode</button>';
+                
+                document.getElementById('accelerometer').insertBefore(demoDiv, document.getElementById('accel-debug'));
+                document.getElementById('gyroscope').insertBefore(demoDiv.cloneNode(true), document.getElementById('gyro-debug'));
+            }
         });
+        
+        // Demo mode for desktop testing
+        let demoMode = false;
+        let demoInterval;
+        
+        function startDemoMode() {
+            if (demoMode) {
+                stopDemoMode();
+                return;
+            }
+            
+            demoMode = true;
+            console.log('Starting demo mode...');
+            
+            // Simulate accelerometer data
+            let accelData = { x: 0, y: 0, z: 9.8, magnitude: 9.8 };
+            let gyroData = { x: 0, y: 0, z: 0, magnitude: 0 };
+            
+            demoInterval = setInterval(() => {
+                // Simulate motion
+                accelData.x = Math.sin(Date.now() * 0.001) * 2;
+                accelData.y = Math.cos(Date.now() * 0.001) * 2;
+                accelData.z = 9.8 + Math.sin(Date.now() * 0.002) * 1;
+                accelData.magnitude = Math.sqrt(accelData.x**2 + accelData.y**2 + accelData.z**2);
+                
+                gyroData.x = Math.sin(Date.now() * 0.003) * 30;
+                gyroData.y = Math.cos(Date.now() * 0.003) * 30;
+                gyroData.z = Math.sin(Date.now() * 0.001) * 10;
+                gyroData.magnitude = Math.sqrt(gyroData.x**2 + gyroData.y**2 + gyroData.z**2);
+                
+                // Update UI if sensors are enabled
+                if (sensors.accel.enabled) {
+                    updateAccelerometerData({ ...accelData, timestamp: Date.now() });
+                }
+                if (sensors.gyro.enabled) {
+                    updateGyroscopeData({ ...gyroData, timestamp: Date.now() });
+                }
+            }, 100);
+            
+            // Update button text
+            document.querySelectorAll('.warning button').forEach(btn => {
+                btn.textContent = 'Stop Demo Mode';
+                btn.style.background = '#f56565';
+            });
+        }
+        
+        function stopDemoMode() {
+            demoMode = false;
+            if (demoInterval) {
+                clearInterval(demoInterval);
+            }
+            
+            // Update button text
+            document.querySelectorAll('.warning button').forEach(btn => {
+                btn.textContent = 'Start Demo Mode';
+                btn.style.background = '#667eea';
+            });
+        }
     </script>
 </body>
 </html>
