@@ -365,7 +365,7 @@
         </div>
 
         <div class="content">
-            <!-- Home Section -->
+
             <div id="home" class="sensor-card active">
                 <h2 class="sensor-title">Welcome to PocketLab</h2>
                 <p class="sensor-description">
@@ -426,7 +426,7 @@
                 </div>
             </div>
 
-            <!-- Accelerometer Section -->
+
             <div id="accelerometer" class="sensor-card">
                 <h2 class="sensor-title">📱 Accelerometer</h2>
                 <p class="sensor-description">
@@ -497,7 +497,7 @@
                 </div>
             </div>
 
-            <!-- Gyroscope Section -->
+
             <div id="gyroscope" class="sensor-card">
                 <h2 class="sensor-title">🔄 Gyroscope</h2>
                 <p class="sensor-description">
@@ -562,7 +562,7 @@
                 </div>
             </div>
 
-            <!-- Sound Section -->
+
             <div id="sound" class="sensor-card">
                 <h2 class="sensor-title">🔊 Sound Level</h2>
                 <p class="sensor-description">
@@ -606,7 +606,7 @@
                 </div>
             </div>
 
-            <!-- Chemistry Section -->
+
             <div id="chemistry" class="sensor-card">
                 <h2 class="sensor-title">🧪 Chemistry Lab</h2>
                 <p class="sensor-description">
@@ -683,58 +683,58 @@
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 30px;">
-                    <!-- Left Panel: Elements and Tools -->
+
                     <div style="background: #f7fafc; border-radius: 15px; padding: 20px; border: 2px solid #e2e8f0;">
                         <h3 style="margin-bottom: 15px; color: #4a5568;">📋 Elements & Tools</h3>
                         
-                        <!-- Periodic Table Elements -->
+
                         <div style="margin-bottom: 20px;">
                             <h4 style="margin-bottom: 10px; color: #2d3748;">⚛️ Elements</h4>
                             <div id="elements-shelf" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
-                                <!-- Elements will be added by JavaScript -->
+    
                             </div>
                         </div>
 
-                        <!-- Liquids -->
+
                         <div style="margin-bottom: 20px;">
                             <h4 style="margin-bottom: 10px; color: #2d3748;">💧 Liquids</h4>
                             <div id="liquids-shelf" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                                <!-- Liquids will be added by JavaScript -->
+    
                             </div>
                         </div>
 
-                        <!-- Tools -->
+
                         <div>
                             <h4 style="margin-bottom: 10px; color: #2d3748;">🛠️ Tools</h4>
                             <div id="tools-shelf" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                                <!-- Tools will be added by JavaScript -->
+    
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Panel: Container and Info -->
+
                     <div style="background: #f7fafc; border-radius: 15px; padding: 20px; border: 2px solid #e2e8f0;">
                         <h3 style="margin-bottom: 15px; color: #4a5568;">🧪 Reaction Container</h3>
                         
-                        <!-- Container -->
+
                         <div id="chemistry-container" style="width: 100%; height: 250px; background: linear-gradient(to bottom, #e6f3ff 0%, #ffffff 100%); border: 3px solid #4299e1; border-radius: 15px; position: relative; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #718096; overflow: hidden;">
-                            <!-- Flask Shape -->
+
                             <div id="flask-shape" style="position: absolute; width: 80%; height: 80%; background: rgba(255,255,255,0.3); border: 3px solid #4299e1; border-radius: 50% 50% 20% 20%; bottom: 10%; left: 10%; display: flex; align-items: center; justify-content: center;">
-                                <!-- Liquid Layer -->
+
                                 <div id="liquid-layer" style="position: absolute; bottom: 0; left: 0; right: 0; height: 0%; background: linear-gradient(to top, rgba(135, 206, 235, 0.6) 0%, rgba(135, 206, 235, 0.3) 100%); border-radius: 0 0 17% 17%; transition: height 0.5s ease;"></div>
                                 
-                                <!-- Element Pebbles Container -->
+
                                 <div id="element-pebbles" style="position: absolute; bottom: 0; left: 0; right: 0; height: 100%; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; padding: 10px; pointer-events: none;"></div>
                                 
-                                <!-- Bubbles Container -->
+
                                 <div id="bubbles-container" style="position: absolute; bottom: 0; left: 0; right: 0; height: 100%; pointer-events: none;"></div>
                                 
-                                <!-- Content Text -->
+
                                 <div id="container-content" style="position: relative; z-index: 10; text-align: center; color: #2d3748; font-weight: bold;">Drag elements and liquids here!</div>
                             </div>
                         </div>
 
-                        <!-- Temperature and Status -->
+
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                             <div style="background: white; padding: 15px; border-radius: 10px; border: 2px solid #e2e8f0;">
                                 <div style="font-size: 0.9rem; color: #718096; margin-bottom: 5px;">🌡️ Temperature</div>
@@ -746,7 +746,7 @@
                             </div>
                         </div>
 
-                        <!-- Reaction Log -->
+
                         <div style="background: white; padding: 15px; border-radius: 10px; border: 2px solid #e2e8f0; max-height: 150px; overflow-y: auto;">
                             <div style="font-size: 0.9rem; color: #718096; margin-bottom: 10px;">📝 Reaction Log</div>
                             <div id="reaction-log" style="font-size: 0.9rem; color: #2d3748;">
