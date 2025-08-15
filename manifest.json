@@ -1,0 +1,21 @@
+{
+  "name": "PocketLab - Science Lab in Your Pocket",
+  "short_name": "PocketLab",
+  "description": "Transform your smartphone into a portable science lab with real-time sensors and interactive chemistry experiments",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
