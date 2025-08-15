@@ -967,7 +967,7 @@
                     
                     sensor.addEventListener('error', (error) => {
                         console.warn('AmbientLightSensor failed:', error);
-                        alert('Light sensor not available on this device');
+                        startCameraLightFallback();
                     });
                     
                     sensor.start();
@@ -977,8 +977,74 @@
                     
                 } catch (error) {
                     console.warn('AmbientLightSensor not available:', error);
-                    alert('Light sensor not supported on this device');
+                    startCameraLightFallback();
                 }
+            } else {
+                startCameraLightFallback();
+            }
+        }
+
+        function startCameraLightFallback() {
+            console.log('Starting camera-based light sensor fallback...');
+            
+            if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(stream => {
+                        const video = document.createElement('video');
+                        video.srcObject = stream;
+                        video.style.display = 'none';
+                        document.body.appendChild(video);
+                        
+                        video.onloadedmetadata = () => {
+                            video.play();
+                            
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            
+                            function analyzeLight() {
+                                if (!sensors.light.enabled) return;
+                                
+                                canvas.width = video.videoWidth;
+                                canvas.height = video.videoHeight;
+                                ctx.drawImage(video, 0, 0);
+                                
+                                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                                const data = imageData.data;
+                                
+                                let totalBrightness = 0;
+                                for (let i = 0; i < data.length; i += 4) {
+                                    const r = data[i];
+                                    const g = data[i + 1];
+                                    const b = data[i + 2];
+                                    const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+                                    totalBrightness += brightness;
+                                }
+                                
+                                const averageBrightness = totalBrightness / (data.length / 4);
+                                const lux = averageBrightness * 0.1;
+                                
+                                const lightData = {
+                                    level: lux,
+                                    timestamp: Date.now()
+                                };
+                                
+                                updateLightData(lightData);
+                                requestAnimationFrame(analyzeLight);
+                            }
+                            
+                            analyzeLight();
+                        });
+                        
+                        sensors.light.enabled = true;
+                        document.getElementById('light-enable').disabled = true;
+                        document.getElementById('light-record').disabled = false;
+                        document.getElementById('light-enable').textContent = 'Using Camera';
+                        
+                    })
+                    .catch(error => {
+                        console.error('Camera access failed:', error);
+                        alert('Light sensor not available. Camera access denied or not supported.');
+                    });
             } else {
                 alert('Light sensor not supported on this device');
             }
