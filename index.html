@@ -309,6 +309,43 @@
                 max-width: 200px;
             }
         }
+
+        @keyframes pebbleDrop {
+            0% {
+                transform: translateY(-50px) scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bubbleRise {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        @keyframes reactionGlow {
+            0% {
+                box-shadow: 0 0 5px currentColor;
+            }
+            50% {
+                box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+            }
+            100% {
+                box-shadow: 0 0 5px currentColor;
+            }
+        }
     </style>
 </head>
 <body>
@@ -620,8 +657,21 @@
                         <h3 style="margin-bottom: 15px; color: #4a5568;">🧪 Reaction Container</h3>
                         
                         <!-- Container -->
-                        <div id="chemistry-container" style="width: 100%; height: 200px; background: linear-gradient(to bottom, #e6f3ff 0%, #ffffff 100%); border: 3px solid #4299e1; border-radius: 15px; position: relative; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #718096;">
-                            <div id="container-content">Drag elements and liquids here!</div>
+                        <div id="chemistry-container" style="width: 100%; height: 250px; background: linear-gradient(to bottom, #e6f3ff 0%, #ffffff 100%); border: 3px solid #4299e1; border-radius: 15px; position: relative; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #718096; overflow: hidden;">
+                            <!-- Flask Shape -->
+                            <div id="flask-shape" style="position: absolute; width: 80%; height: 80%; background: rgba(255,255,255,0.3); border: 3px solid #4299e1; border-radius: 50% 50% 20% 20%; bottom: 10%; left: 10%; display: flex; align-items: center; justify-content: center;">
+                                <!-- Liquid Layer -->
+                                <div id="liquid-layer" style="position: absolute; bottom: 0; left: 0; right: 0; height: 0%; background: linear-gradient(to top, rgba(135, 206, 235, 0.6) 0%, rgba(135, 206, 235, 0.3) 100%); border-radius: 0 0 17% 17%; transition: height 0.5s ease;"></div>
+                                
+                                <!-- Element Pebbles Container -->
+                                <div id="element-pebbles" style="position: absolute; bottom: 0; left: 0; right: 0; height: 100%; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; padding: 10px; pointer-events: none;"></div>
+                                
+                                <!-- Bubbles Container -->
+                                <div id="bubbles-container" style="position: absolute; bottom: 0; left: 0; right: 0; height: 100%; pointer-events: none;"></div>
+                                
+                                <!-- Content Text -->
+                                <div id="container-content" style="position: relative; z-index: 10; text-align: center; color: #2d3748; font-weight: bold;">Drag elements and liquids here!</div>
+                            </div>
                         </div>
 
                         <!-- Temperature and Status -->
@@ -1272,7 +1322,9 @@
             contents: [],
             reactions: [],
             isHeating: false,
-            isCooling: false
+            isCooling: false,
+            activeReactions: new Set(), // Track active reactions to prevent duplicates
+            reactionCooldown: {} // Track cooldowns for reactions
         };
 
         // Chemistry data
@@ -1288,7 +1340,10 @@
             { symbol: 'C', name: 'Carbon', color: '#2c3e50', type: 'nonmetal', reactivity: 'low' },
             { symbol: 'N', name: 'Nitrogen', color: '#3498db', type: 'gas', reactivity: 'low' },
             { symbol: 'S', name: 'Sulfur', color: '#f39c12', type: 'nonmetal', reactivity: 'medium' },
-            { symbol: 'P', name: 'Phosphorus', color: '#e74c3c', type: 'nonmetal', reactivity: 'high' }
+            { symbol: 'P', name: 'Phosphorus', color: '#e74c3c', type: 'nonmetal', reactivity: 'high' },
+            { symbol: 'K', name: 'Potassium', color: '#ff69b4', type: 'metal', reactivity: 'very_high' },
+            { symbol: 'Ca', name: 'Calcium', color: '#ffb6c1', type: 'metal', reactivity: 'high' },
+            { symbol: 'Mg', name: 'Magnesium', color: '#dda0dd', type: 'metal', reactivity: 'high' }
         ];
 
         const liquids = [
@@ -1438,6 +1493,7 @@
             } else {
                 chemistryLab.contents.push(itemData);
                 updateContainerDisplay();
+                updateFlaskVisuals();
                 checkReactions();
             }
         }
@@ -1466,19 +1522,43 @@
         function checkReactions() {
             const contents = chemistryLab.contents;
             
-            // Check for specific reactions
-            if (hasElement('Na') && hasLiquid('Water')) {
-                triggerReaction('Sodium + Water', '💥 Explosive reaction! Sodium reacts violently with water, producing hydrogen gas and sodium hydroxide.', '#ff6b6b');
-            } else if (hasElement('Fe') && hasLiquid('Acid')) {
-                triggerReaction('Iron + Acid', '🫧 Iron dissolves in acid, producing hydrogen gas and iron chloride.', '#ffa500');
-            } else if (hasElement('Cu') && hasLiquid('Acid')) {
-                triggerReaction('Copper + Acid', '🫧 Copper reacts slowly with acid, producing copper chloride and hydrogen gas.', '#32cd32');
-            } else if (hasElement('Ag') && hasLiquid('Acid')) {
-                triggerReaction('Silver + Acid', '✨ Silver is resistant to most acids. No visible reaction.', '#c0c0c0');
-            } else if (hasElement('H') && hasElement('O') && chemistryLab.temperature > 100) {
-                triggerReaction('Hydrogen + Oxygen (Hot)', '💥 Combustion reaction! Hydrogen and oxygen combine to form water vapor.', '#ff4500');
-            } else if (hasLiquid('Acid') && hasLiquid('Base')) {
-                triggerReaction('Acid + Base', '🧪 Neutralization reaction! Acid and base neutralize each other, forming salt and water.', '#9370db');
+            // Check for specific reactions with cooldown
+            if (hasElement('Na') && hasLiquid('Water') && !isReactionActive('Na+Water')) {
+                triggerReaction('Na+Water', 'Sodium + Water', '💥 Explosive reaction! Sodium reacts violently with water, producing hydrogen gas and sodium hydroxide.', '#ff6b6b', 5000);
+            } else if (hasElement('Fe') && hasLiquid('Acid') && !isReactionActive('Fe+Acid')) {
+                triggerReaction('Fe+Acid', 'Iron + Acid', '🫧 Iron dissolves in acid, producing hydrogen gas and iron chloride.', '#ffa500', 4000);
+            } else if (hasElement('Cu') && hasLiquid('Acid') && !isReactionActive('Cu+Acid')) {
+                triggerReaction('Cu+Acid', 'Copper + Acid', '🫧 Copper reacts slowly with acid, producing copper chloride and hydrogen gas.', '#32cd32', 6000);
+            } else if (hasElement('Ag') && hasLiquid('Acid') && !isReactionActive('Ag+Acid')) {
+                triggerReaction('Ag+Acid', 'Silver + Acid', '✨ Silver is resistant to most acids. No visible reaction.', '#c0c0c0', 3000);
+            } else if (hasElement('H') && hasElement('O') && chemistryLab.temperature > 100 && !isReactionActive('H+O')) {
+                triggerReaction('H+O', 'Hydrogen + Oxygen (Hot)', '💥 Combustion reaction! Hydrogen and oxygen combine to form water vapor.', '#ff4500', 8000);
+            } else if (hasLiquid('Acid') && hasLiquid('Base') && !isReactionActive('Acid+Base')) {
+                triggerReaction('Acid+Base', 'Acid + Base', '🧪 Neutralization reaction! Acid and base neutralize each other, forming salt and water.', '#9370db', 5000);
+            } else if (hasElement('Na') && hasLiquid('Acid') && !isReactionActive('Na+Acid')) {
+                triggerReaction('Na+Acid', 'Sodium + Acid', '💥 Violent reaction! Sodium reacts explosively with acid, producing hydrogen gas and sodium chloride.', '#ff0000', 6000);
+            } else if (hasElement('Fe') && hasElement('O') && chemistryLab.temperature > 50 && !isReactionActive('Fe+O')) {
+                triggerReaction('Fe+O', 'Iron + Oxygen (Hot)', '🔥 Oxidation reaction! Iron rusts when exposed to oxygen at high temperature.', '#8b4513', 4000);
+            } else if (hasElement('C') && hasElement('O') && chemistryLab.temperature > 200 && !isReactionActive('C+O')) {
+                triggerReaction('C+O', 'Carbon + Oxygen (Very Hot)', '🔥 Combustion! Carbon burns in oxygen to form carbon dioxide.', '#ff4500', 7000);
+            } else if (hasElement('S') && hasLiquid('Water') && !isReactionActive('S+Water')) {
+                triggerReaction('S+Water', 'Sulfur + Water', '💧 Sulfur dissolves slightly in water, forming a weak acid.', '#f39c12', 3000);
+            } else if (hasElement('P') && hasElement('O') && chemistryLab.temperature > 30 && !isReactionActive('P+O')) {
+                triggerReaction('P+O', 'Phosphorus + Oxygen', '🔥 Phosphorus ignites in oxygen, producing phosphorus pentoxide.', '#ff6347', 5000);
+            } else if (hasElement('K') && hasLiquid('Water') && !isReactionActive('K+Water')) {
+                triggerReaction('K+Water', 'Potassium + Water', '💥 Even more explosive than sodium! Potassium reacts violently with water, producing hydrogen gas and potassium hydroxide.', '#ff1493', 6000);
+            } else if (hasElement('Ca') && hasLiquid('Water') && !isReactionActive('Ca+Water')) {
+                triggerReaction('Ca+Water', 'Calcium + Water', '🫧 Calcium reacts with water, producing hydrogen gas and calcium hydroxide.', '#ffb6c1', 4000);
+            } else if (hasElement('Mg') && hasLiquid('Acid') && !isReactionActive('Mg+Acid')) {
+                triggerReaction('Mg+Acid', 'Magnesium + Acid', '🫧 Magnesium dissolves in acid, producing hydrogen gas and magnesium chloride.', '#dda0dd', 5000);
+            } else if (hasElement('K') && hasLiquid('Acid') && !isReactionActive('K+Acid')) {
+                triggerReaction('K+Acid', 'Potassium + Acid', '💥 Extremely violent reaction! Potassium explodes in acid, producing hydrogen gas and potassium chloride.', '#ff0000', 7000);
+            } else if (hasElement('Na') && hasElement('Cl') && chemistryLab.temperature > 50 && !isReactionActive('Na+Cl')) {
+                triggerReaction('Na+Cl', 'Sodium + Chlorine', '🧂 Formation of table salt! Sodium and chlorine combine to form sodium chloride.', '#ffffff', 4000);
+            } else if (hasElement('Fe') && hasElement('Cl') && chemistryLab.temperature > 100 && !isReactionActive('Fe+Cl')) {
+                triggerReaction('Fe+Cl', 'Iron + Chlorine', '🔥 Iron burns in chlorine gas, producing iron(III) chloride.', '#8b4513', 5000);
+            } else if (hasElement('Mg') && hasElement('O') && chemistryLab.temperature > 400 && !isReactionActive('Mg+O')) {
+                triggerReaction('Mg+O', 'Magnesium + Oxygen (Very Hot)', '💥 Bright white flame! Magnesium burns brilliantly in oxygen, producing magnesium oxide.', '#ffffff', 6000);
             }
         }
 
@@ -1490,20 +1570,39 @@
             return chemistryLab.contents.some(item => item.type === 'liquid' && item.name === name);
         }
 
-        function triggerReaction(name, description, color) {
+        function isReactionActive(reactionId) {
+            return chemistryLab.activeReactions.has(reactionId);
+        }
+
+        function triggerReaction(reactionId, name, description, color, cooldownMs) {
+            // Add to active reactions
+            chemistryLab.activeReactions.add(reactionId);
+            
+            // Add to reaction history
             chemistryLab.reactions.push({ name, description, timestamp: new Date() });
             addToLog(`🧪 ${name}: ${description}`);
             
-            // Update container appearance
+            // Update container appearance with glow effect
             const container = document.getElementById('chemistry-container');
             container.style.background = `linear-gradient(to bottom, ${color}20 0%, #ffffff 100%)`;
             container.style.borderColor = color;
+            container.style.animation = 'reactionGlow 2s ease-in-out';
             
-            // Reset after 3 seconds
+            // Update flask visuals for reaction
+            updateFlaskVisuals();
+            
+            // Reset container appearance after 3 seconds
             setTimeout(() => {
                 container.style.background = 'linear-gradient(to bottom, #e6f3ff 0%, #ffffff 100%)';
                 container.style.borderColor = '#4299e1';
+                container.style.animation = '';
             }, 3000);
+            
+            // Remove from active reactions after cooldown
+            setTimeout(() => {
+                chemistryLab.activeReactions.delete(reactionId);
+                updateFlaskVisuals(); // Remove bubbles when reaction ends
+            }, cooldownMs);
         }
 
         function updateContainerDisplay() {
@@ -1525,6 +1624,91 @@
             }
             
             content.innerHTML = display;
+        }
+
+        function updateFlaskVisuals() {
+            const liquidLayer = document.getElementById('liquid-layer');
+            const elementPebbles = document.getElementById('element-pebbles');
+            const bubblesContainer = document.getElementById('bubbles-container');
+            
+            const elements = chemistryLab.contents.filter(item => item.type === 'element');
+            const liquids = chemistryLab.contents.filter(item => item.type === 'liquid');
+            
+            // Update liquid level
+            if (liquids.length > 0) {
+                const liquidHeight = Math.min(60 + (liquids.length * 10), 80); // Max 80% height
+                liquidLayer.style.height = liquidHeight + '%';
+                
+                // Update liquid color based on contents
+                if (liquids.some(l => l.name === 'Acid')) {
+                    liquidLayer.style.background = 'linear-gradient(to top, rgba(255, 107, 107, 0.6) 0%, rgba(255, 107, 107, 0.3) 100%)';
+                } else if (liquids.some(l => l.name === 'Base')) {
+                    liquidLayer.style.background = 'linear-gradient(to top, rgba(255, 235, 59, 0.6) 0%, rgba(255, 235, 59, 0.3) 100%)';
+                } else if (liquids.some(l => l.name === 'Alcohol')) {
+                    liquidLayer.style.background = 'linear-gradient(to top, rgba(240, 248, 255, 0.6) 0%, rgba(240, 248, 255, 0.3) 100%)';
+                } else {
+                    liquidLayer.style.background = 'linear-gradient(to top, rgba(135, 206, 235, 0.6) 0%, rgba(135, 206, 235, 0.3) 100%)';
+                }
+            } else {
+                liquidLayer.style.height = '0%';
+            }
+            
+            // Update element pebbles
+            elementPebbles.innerHTML = '';
+            elements.forEach((element, index) => {
+                const elementData = elements.find(e => e.symbol === element.symbol);
+                if (elementData) {
+                    const pebble = document.createElement('div');
+                    pebble.style.cssText = `
+                        width: 20px;
+                        height: 20px;
+                        background: ${elementData.color};
+                        border: 2px solid #333;
+                        border-radius: 50%;
+                        margin: 2px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.7rem;
+                        font-weight: bold;
+                        color: #333;
+                        position: relative;
+                        z-index: 5;
+                        animation: pebbleDrop 0.5s ease-out;
+                    `;
+                    pebble.textContent = element.symbol;
+                    elementPebbles.appendChild(pebble);
+                }
+            });
+            
+            // Add bubbles if there are reactions happening
+            if (chemistryLab.activeReactions.size > 0) {
+                addBubbles();
+            } else {
+                bubblesContainer.innerHTML = '';
+            }
+        }
+
+        function addBubbles() {
+            const bubblesContainer = document.getElementById('bubbles-container');
+            bubblesContainer.innerHTML = '';
+            
+            // Create multiple bubbles
+            for (let i = 0; i < 8; i++) {
+                const bubble = document.createElement('div');
+                bubble.style.cssText = `
+                    position: absolute;
+                    width: ${Math.random() * 8 + 4}px;
+                    height: ${Math.random() * 8 + 4}px;
+                    background: rgba(255, 255, 255, 0.7);
+                    border-radius: 50%;
+                    bottom: ${Math.random() * 30}%;
+                    left: ${Math.random() * 80}%;
+                    animation: bubbleRise ${Math.random() * 2 + 1}s linear infinite;
+                    animation-delay: ${Math.random() * 2}s;
+                `;
+                bubblesContainer.appendChild(bubble);
+            }
         }
 
         function updateTemperatureDisplay() {
@@ -1553,16 +1737,20 @@
                 contents: [],
                 reactions: [],
                 isHeating: false,
-                isCooling: false
+                isCooling: false,
+                activeReactions: new Set(),
+                reactionCooldown: {}
             };
             
             updateContainerDisplay();
+            updateFlaskVisuals();
             updateTemperatureDisplay();
             document.getElementById('reaction-log').innerHTML = 'Welcome to the chemistry lab! Start by adding elements or liquids.';
             
             const container = document.getElementById('chemistry-container');
             container.style.background = 'linear-gradient(to bottom, #e6f3ff 0%, #ffffff 100%)';
             container.style.borderColor = '#4299e1';
+            container.style.animation = '';
         }
 
         function exportChemistryData() {
