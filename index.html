@@ -319,11 +319,11 @@
         </div>
 
         <div class="nav">
-            <button onclick="showSection('home')" class="active">🏠 Home</button>
-            <button onclick="showSection('accelerometer')">📱 Accelerometer</button>
-            <button onclick="showSection('gyroscope')">🔄 Gyroscope</button>
-            <button onclick="showSection('sound')">🔊 Sound Level</button>
-            <button onclick="showSection('light')">💡 Ambient Light</button>
+            <button onclick="showSection('home', event)" class="active">🏠 Home</button>
+            <button onclick="showSection('accelerometer', event)">📱 Accelerometer</button>
+            <button onclick="showSection('gyroscope', event)">🔄 Gyroscope</button>
+            <button onclick="showSection('sound', event)">🔊 Sound Level</button>
+            <button onclick="showSection('light', event)">💡 Ambient Light</button>
         </div>
 
         <div class="content">
@@ -335,19 +335,19 @@
                 </p>
                 
                 <div class="home-grid">
-                    <a href="#" onclick="showSection('accelerometer')" class="home-card">
+                    <a href="#" onclick="showSection('accelerometer', event)" class="home-card">
                         <h3>📱 Accelerometer</h3>
                         <p>Measure motion and orientation in 3D space</p>
                     </a>
-                    <a href="#" onclick="showSection('gyroscope')" class="home-card">
+                    <a href="#" onclick="showSection('gyroscope', event)" class="home-card">
                         <h3>🔄 Gyroscope</h3>
                         <p>Track rotation and angular velocity</p>
                     </a>
-                    <a href="#" onclick="showSection('sound')" class="home-card">
+                    <a href="#" onclick="showSection('sound', event)" class="home-card">
                         <h3>🔊 Sound Level</h3>
                         <p>Monitor ambient noise levels</p>
                     </a>
-                    <a href="#" onclick="showSection('light')" class="home-card">
+                    <a href="#" onclick="showSection('light', event)" class="home-card">
                         <h3>💡 Ambient Light</h3>
                         <p>Measure environmental lighting</p>
                     </a>
@@ -549,12 +549,14 @@
         };
 
         // Navigation
-        function showSection(section) {
+        function showSection(section, event) {
             document.querySelectorAll('.sensor-card').forEach(card => card.classList.remove('active'));
             document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
             
             document.getElementById(section).classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
             
             currentSection = section;
             updateDebugInfo();
