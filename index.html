@@ -636,10 +636,16 @@
 
         function startDeviceMotionFallback() {
             console.log('Starting devicemotion fallback...');
+            console.log('DeviceMotionEvent available:', 'DeviceMotionEvent' in window);
             
             if ('DeviceMotionEvent' in window) {
-                window.addEventListener('devicemotion', (event) => {
+                let permissionRequested = false;
+                
+                const motionHandler = (event) => {
+                    console.log('DeviceMotion event received:', event);
                     const acceleration = event.accelerationIncludingGravity;
+                    console.log('Acceleration data:', acceleration);
+                    
                     if (acceleration) {
                         const data = {
                             x: acceleration.x,
@@ -649,14 +655,51 @@
                             timestamp: Date.now()
                         };
                         
+                        console.log('Processed accelerometer data:', data);
                         updateAccelerometerData(data);
+                    } else {
+                        console.log('No acceleration data in event');
                     }
-                });
+                };
                 
-                sensors.accel.enabled = true;
-                document.getElementById('accel-enable').disabled = true;
-                document.getElementById('accel-record').disabled = false;
+                // Request permission on iOS
+                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                    console.log('iOS detected, requesting motion permission...');
+                    
+                    // iOS requires user interaction to request permission
+                    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                        DeviceMotionEvent.requestPermission()
+                            .then(permissionState => {
+                                console.log('Motion permission result:', permissionState);
+                                if (permissionState === 'granted') {
+                                    window.addEventListener('devicemotion', motionHandler);
+                                    sensors.accel.enabled = true;
+                                    document.getElementById('accel-enable').disabled = true;
+                                    document.getElementById('accel-record').disabled = false;
+                                } else {
+                                    alert('Motion permission denied. Please allow motion access in iOS Settings.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error requesting motion permission:', error);
+                                alert('Could not request motion permission. Please check iOS Settings.');
+                            });
+                    } else {
+                        // Fallback for older iOS versions
+                        window.addEventListener('devicemotion', motionHandler);
+                        sensors.accel.enabled = true;
+                        document.getElementById('accel-enable').disabled = true;
+                        document.getElementById('accel-record').disabled = false;
+                    }
+                } else {
+                    // Non-iOS devices
+                    window.addEventListener('devicemotion', motionHandler);
+                    sensors.accel.enabled = true;
+                    document.getElementById('accel-enable').disabled = true;
+                    document.getElementById('accel-record').disabled = false;
+                }
             } else {
+                console.error('DeviceMotionEvent not available');
                 alert('Accelerometer not supported on this device');
             }
         }
@@ -952,7 +995,7 @@
             if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'info';
-                infoDiv.innerHTML = '<strong>📱 iOS Detected:</strong> iOS Safari uses DeviceMotion/DeviceOrientation APIs instead of modern sensor APIs. This should work fine - try clicking "Enable" and allow motion permissions when prompted.';
+                infoDiv.innerHTML = '<strong>📱 iOS Detected:</strong> iOS Safari uses DeviceMotion/DeviceOrientation APIs instead of modern sensor APIs. When you click "Enable", iOS will ask for motion permission. You must tap "Allow" for the sensor to work. If it doesn\'t work, check iOS Settings → Safari → Motion & Orientation Access.';
                 
                 document.getElementById('accelerometer').insertBefore(infoDiv, document.getElementById('accel-debug'));
                 document.getElementById('gyroscope').insertBefore(infoDiv.cloneNode(true), document.getElementById('gyro-debug'));
