@@ -444,6 +444,18 @@
                     <canvas id="gyro-sparkline"></canvas>
                 </div>
 
+                <div class="sparkline-container">
+                    <div class="sparkline-title">📱 Level Indicator</div>
+                    <div id="level-indicator" style="text-align: center; padding: 20px;">
+                        <div id="level-circle" style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto; border: 4px solid #e2e8f0; background: #f7fafc; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; transition: all 0.3s ease;">
+                            📱
+                        </div>
+                        <div id="level-text" style="margin-top: 15px; font-size: 1.1rem; font-weight: 600; color: #4a5568;">
+                            Hold phone flat to level
+                        </div>
+                    </div>
+                </div>
+
                 <div class="controls">
                     <button class="btn btn-primary" id="gyro-enable" onclick="enableGyroscope()">Enable Sensor</button>
                     <button class="btn btn-secondary" id="gyro-record" onclick="toggleRecording('gyro')" disabled>Start Recording</button>
@@ -789,6 +801,9 @@
             document.getElementById('gyro-z').textContent = Math.round(smoothing.gyro.z * 10) / 10;
             document.getElementById('gyro-magnitude').textContent = Math.round(smoothing.gyro.magnitude * 10) / 10;
             
+            // Update level indicator
+            updateLevelIndicator(smoothing.gyro.x, smoothing.gyro.y);
+            
             sparklines.gyro.values.push(smoothing.gyro.magnitude);
             if (sparklines.gyro.values.length > sparklines.gyro.maxPoints) {
                 sparklines.gyro.values.shift();
@@ -798,6 +813,55 @@
             if (sensors.gyro.recording) {
                 sensors.gyro.data.push(data);
             }
+        }
+
+        function updateLevelIndicator(x, y) {
+            const levelCircle = document.getElementById('level-circle');
+            const levelText = document.getElementById('level-text');
+            
+            if (!levelCircle || !levelText) return;
+            
+            // Calculate how level the phone is (0 = perfectly level, 1 = very tilted)
+            const tiltX = Math.abs(x) / 90; // Normalize to 0-1
+            const tiltY = Math.abs(y) / 90; // Normalize to 0-1
+            const maxTilt = Math.max(tiltX, tiltY);
+            const levelness = 1 - maxTilt; // 1 = perfectly level, 0 = very tilted
+            
+            // Determine color based on levelness
+            let color, text, emoji;
+            if (levelness > 0.95) {
+                // Perfectly level - green
+                color = '#10b981';
+                text = 'Perfectly Level!';
+                emoji = '🎯';
+            } else if (levelness > 0.8) {
+                // Very level - light green
+                color = '#34d399';
+                text = 'Very Level';
+                emoji = '✅';
+            } else if (levelness > 0.6) {
+                // Somewhat level - yellow
+                color = '#f59e0b';
+                text = 'Getting There';
+                emoji = '📱';
+            } else if (levelness > 0.3) {
+                // Not very level - orange
+                color = '#f97316';
+                text = 'Not Level';
+                emoji = '📱';
+            } else {
+                // Very tilted - red
+                color = '#ef4444';
+                text = 'Very Tilted';
+                emoji = '📱';
+            }
+            
+            // Update the display
+            levelCircle.style.borderColor = color;
+            levelCircle.style.backgroundColor = color + '20'; // 20% opacity
+            levelCircle.textContent = emoji;
+            levelText.textContent = text;
+            levelText.style.color = color;
         }
 
         // Sound
@@ -903,7 +967,7 @@
                     
                     sensor.addEventListener('error', (error) => {
                         console.warn('AmbientLightSensor failed:', error);
-                        alert('Light sensor not available on this device');
+                        startCameraLightFallback();
                     });
                     
                     sensor.start();
@@ -913,8 +977,79 @@
                     
                 } catch (error) {
                     console.warn('AmbientLightSensor not available:', error);
-                    alert('Light sensor not supported on this device');
+                    startCameraLightFallback();
                 }
+            } else {
+                startCameraLightFallback();
+            }
+        }
+
+        function startCameraLightFallback() {
+            console.log('Starting camera-based light sensor fallback...');
+            
+            if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(stream => {
+                        const video = document.createElement('video');
+                        video.srcObject = stream;
+                        video.style.display = 'none';
+                        document.body.appendChild(video);
+                        
+                        video.onloadedmetadata = () => {
+                            video.play();
+                            
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            
+                            function analyzeLight() {
+                                if (!sensors.light.enabled) return;
+                                
+                                canvas.width = video.videoWidth;
+                                canvas.height = video.videoHeight;
+                                ctx.drawImage(video, 0, 0);
+                                
+                                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                                const data = imageData.data;
+                                
+                                // Calculate average brightness
+                                let totalBrightness = 0;
+                                for (let i = 0; i < data.length; i += 4) {
+                                    const r = data[i];
+                                    const g = data[i + 1];
+                                    const b = data[i + 2];
+                                    // Convert RGB to brightness (luminance)
+                                    const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+                                    totalBrightness += brightness;
+                                }
+                                
+                                const averageBrightness = totalBrightness / (data.length / 4);
+                                // Convert to approximate lux (very rough approximation)
+                                const lux = averageBrightness * 0.1;
+                                
+                                const lightData = {
+                                    level: lux,
+                                    timestamp: Date.now()
+                                };
+                                
+                                updateLightData(lightData);
+                                requestAnimationFrame(analyzeLight);
+                            }
+                            
+                            analyzeLight();
+                        });
+                        
+                        sensors.light.enabled = true;
+                        document.getElementById('light-enable').disabled = true;
+                        document.getElementById('light-record').disabled = false;
+                        
+                        // Update button text to indicate camera usage
+                        document.getElementById('light-enable').textContent = 'Using Camera';
+                        
+                    })
+                    .catch(error => {
+                        console.error('Camera access failed:', error);
+                        alert('Light sensor not available. Camera access denied or not supported.');
+                    });
             } else {
                 alert('Light sensor not supported on this device');
             }
