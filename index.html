@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketLab - Your Smartphone Science Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav button {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav button:hover, .nav button.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 500px;
+        }
+
+        .sensor-card {
+            text-align: center;
+            display: none;
+        }
+
+        .sensor-card.active {
+            display: block;
+        }
+
+        .sensor-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #4a5568;
+        }
+
+        .sensor-description {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .data-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .data-item {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .data-label {
+            font-size: 0.9rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .data-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .data-unit {
+            font-size: 1rem;
+            color: #718096;
+            margin-left: 5px;
+        }
+
+        .sparkline-container {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .sparkline-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100px;
+            border-radius: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .debug-info {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #4a5568;
+            word-break: break-all;
+        }
+
+        .warning {
+            background: #fef5e7;
+            border: 2px solid #f6ad55;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border: 2px solid #63b3ed;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #2c5282;
+        }
+
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .home-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .home-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .home-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .home-card p {
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav {
+                gap: 10px;
+            }
+            
+            .nav button {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .data-display {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 PocketLab</h1>
+            <p>Transform your smartphone into a mini science lab</p>
+        </div>
+
+        <div class="nav">
+            <button onclick="showSection('home')" class="active">🏠 Home</button>
+            <button onclick="showSection('accelerometer')">📱 Accelerometer</button>
+            <button onclick="showSection('gyroscope')">🔄 Gyroscope</button>
+            <button onclick="showSection('sound')">🔊 Sound Level</button>
+            <button onclick="showSection('light')">💡 Ambient Light</button>
+        </div>
+
+        <div class="content">
+            <!-- Home Section -->
+            <div id="home" class="sensor-card active">
+                <h2 class="sensor-title">Welcome to PocketLab</h2>
+                <p class="sensor-description">
+                    Your smartphone is packed with sensors! Use PocketLab to explore real-time data from your device's accelerometer, gyroscope, microphone, and light sensor.
+                </p>
+                
+                <div class="home-grid">
+                    <a href="#" onclick="showSection('accelerometer')" class="home-card">
+                        <h3>📱 Accelerometer</h3>
+                        <p>Measure motion and orientation in 3D space</p>
+                    </a>
+                    <a href="#" onclick="showSection('gyroscope')" class="home-card">
+                        <h3>🔄 Gyroscope</h3>
+                        <p>Track rotation and angular velocity</p>
+                    </a>
+                    <a href="#" onclick="showSection('sound')" class="home-card">
+                        <h3>🔊 Sound Level</h3>
+                        <p>Monitor ambient noise levels</p>
+                    </a>
+                    <a href="#" onclick="showSection('light')" class="home-card">
+                        <h3>💡 Ambient Light</h3>
+                        <p>Measure environmental lighting</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Accelerometer Section -->
+            <div id="accelerometer" class="sensor-card">
+                <h2 class="sensor-title">📱 Accelerometer</h2>
+                <p class="sensor-description">
+                    Measure acceleration in X, Y, and Z axes. Perfect for motion detection, orientation sensing, and physics experiments.
+                </p>
+
+                <div class="debug-info" id="accel-debug"></div>
+
+                <div class="data-display">
+                    <div class="data-item">
+                        <div class="data-label">X Axis</div>
+                        <div class="data-value" id="accel-x">--</div>
+                        <span class="data-unit">m/s²</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Y Axis</div>
+                        <div class="data-value" id="accel-y">--</div>
+                        <span class="data-unit">m/s²</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Z Axis</div>
+                        <div class="data-value" id="accel-z">--</div>
+                        <span class="data-unit">m/s²</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Magnitude</div>
+                        <div class="data-value" id="accel-magnitude">--</div>
+                        <span class="data-unit">m/s²</span>
+                    </div>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">Real-time Motion</div>
+                    <canvas id="accel-sparkline"></canvas>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="accel-enable" onclick="enableAccelerometer()">Enable Sensor</button>
+                    <button class="btn btn-secondary" id="accel-record" onclick="toggleRecording('accel')" disabled>Start Recording</button>
+                    <button class="btn btn-secondary" id="accel-export" onclick="exportData('accel')" disabled>Export CSV</button>
+                </div>
+            </div>
+
+            <!-- Gyroscope Section -->
+            <div id="gyroscope" class="sensor-card">
+                <h2 class="sensor-title">🔄 Gyroscope</h2>
+                <p class="sensor-description">
+                    Track rotation around X, Y, and Z axes. Great for measuring angular velocity and rotational motion.
+                </p>
+
+                <div class="debug-info" id="gyro-debug"></div>
+
+                <div class="data-display">
+                    <div class="data-item">
+                        <div class="data-label">X Rotation</div>
+                        <div class="data-value" id="gyro-x">--</div>
+                        <span class="data-unit">°/s</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Y Rotation</div>
+                        <div class="data-value" id="gyro-y">--</div>
+                        <span class="data-unit">°/s</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Z Rotation</div>
+                        <div class="data-value" id="gyro-z">--</div>
+                        <span class="data-unit">°/s</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Magnitude</div>
+                        <div class="data-value" id="gyro-magnitude">--</div>
+                        <span class="data-unit">°/s</span>
+                    </div>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">Real-time Rotation</div>
+                    <canvas id="gyro-sparkline"></canvas>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="gyro-enable" onclick="enableGyroscope()">Enable Sensor</button>
+                    <button class="btn btn-secondary" id="gyro-record" onclick="toggleRecording('gyro')" disabled>Start Recording</button>
+                    <button class="btn btn-secondary" id="gyro-export" onclick="exportData('gyro')" disabled>Export CSV</button>
+                </div>
+            </div>
+
+            <!-- Sound Section -->
+            <div id="sound" class="sensor-card">
+                <h2 class="sensor-title">🔊 Sound Level</h2>
+                <p class="sensor-description">
+                    Measure ambient sound levels using your device's microphone. Monitor noise levels in your environment.
+                </p>
+
+                <div class="warning">
+                    <strong>⚠️ Safety Notice:</strong> Keep volume levels safe. Prolonged exposure to sounds &gt;85 dB can damage hearing.
+                </div>
+
+                <div class="data-display">
+                    <div class="data-item">
+                        <div class="data-label">Sound Level</div>
+                        <div class="data-value" id="sound-level">--</div>
+                        <span class="data-unit">dB</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">RMS</div>
+                        <div class="data-value" id="sound-rms">--</div>
+                        <span class="data-unit">V</span>
+                    </div>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">Real-time Sound</div>
+                    <canvas id="sound-sparkline"></canvas>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="sound-enable" onclick="enableSound()">Enable Microphone</button>
+                    <button class="btn btn-secondary" id="sound-record" onclick="toggleRecording('sound')" disabled>Start Recording</button>
+                    <button class="btn btn-secondary" id="sound-export" onclick="exportData('sound')" disabled>Export CSV</button>
+                </div>
+            </div>
+
+            <!-- Light Section -->
+            <div id="light" class="sensor-card">
+                <h2 class="sensor-title">💡 Ambient Light</h2>
+                <p class="sensor-description">
+                    Measure ambient light levels using your device's light sensor. Monitor lighting conditions in your environment.
+                </p>
+
+                <div class="debug-info" id="light-debug"></div>
+
+                <div class="data-display">
+                    <div class="data-item">
+                        <div class="data-label">Light Level</div>
+                        <div class="data-value" id="light-level">--</div>
+                        <span class="data-unit">lux</span>
+                    </div>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">Real-time Light</div>
+                    <canvas id="light-sparkline"></canvas>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="light-enable" onclick="enableLight()">Enable Sensor</button>
+                    <button class="btn btn-secondary" id="light-record" onclick="toggleRecording('light')" disabled>Start Recording</button>
+                    <button class="btn btn-secondary" id="light-export" onclick="exportData('light')" disabled>Export CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentSection = 'home';
+        let sensors = {
+            accel: { enabled: false, data: [], recording: false },
+            gyro: { enabled: false, data: [], recording: false },
+            sound: { enabled: false, data: [], recording: false },
+            light: { enabled: false, data: [], recording: false }
+        };
+
+        // Sparkline data
+        let sparklines = {
+            accel: { values: [], maxPoints: 100 },
+            gyro: { values: [], maxPoints: 100 },
+            sound: { values: [], maxPoints: 100 },
+            light: { values: [], maxPoints: 100 }
+        };
+
+        // Navigation
+        function showSection(section) {
+            document.querySelectorAll('.sensor-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(section).classList.add('active');
+            event.target.classList.add('active');
+            
+            currentSection = section;
+            updateDebugInfo();
+        }
+
+        // Debug info
+        function updateDebugInfo() {
+            const checks = [];
+            checks.push(`HTTPS: ${window.location.protocol === 'https:'}`);
+            checks.push(`Accelerometer API: ${'Accelerometer' in window}`);
+            checks.push(`Gyroscope API: ${'Gyroscope' in window}`);
+            checks.push(`DeviceMotion: ${'DeviceMotionEvent' in window}`);
+            checks.push(`DeviceOrientation: ${'DeviceOrientationEvent' in window}`);
+            checks.push(`MediaDevices: ${'mediaDevices' in navigator}`);
+            checks.push(`AmbientLightSensor: ${'AmbientLightSensor' in window}`);
+            checks.push(`Permissions API: ${'permissions' in navigator}`);
+            checks.push(`Mobile: ${/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)}`);
+            checks.push(`iOS: ${/iPhone|iPad|iPod/i.test(navigator.userAgent)}`);
+            
+            const debugElement = document.getElementById(currentSection + '-debug');
+            if (debugElement) {
+                debugElement.textContent = checks.join(' | ');
+            }
+        }
+
+        // Sparkline drawing
+        function drawSparkline(canvasId, values) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            if (values.length < 2) return;
+            
+            const max = Math.max(...values);
+            const min = Math.min(...values);
+            const range = max - min || 1;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            values.forEach((value, index) => {
+                const x = (index / (values.length - 1)) * canvas.width;
+                const y = canvas.height - ((value - min) / range) * canvas.height;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+        }
+
+        // Accelerometer
+        function enableAccelerometer() {
+            console.log('Enabling accelerometer...');
+            
+            if ('Accelerometer' in window) {
+                try {
+                    const sensor = new Accelerometer({ frequency: 10 });
+                    
+                    sensor.addEventListener('reading', () => {
+                        const data = {
+                            x: sensor.x,
+                            y: sensor.y,
+                            z: sensor.z,
+                            magnitude: Math.sqrt(sensor.x**2 + sensor.y**2 + sensor.z**2),
+                            timestamp: Date.now()
+                        };
+                        
+                        updateAccelerometerData(data);
+                    });
+                    
+                    sensor.addEventListener('error', (error) => {
+                        console.warn('Accelerometer API failed, falling back to devicemotion:', error);
+                        startDeviceMotionFallback();
+                    });
+                    
+                    sensor.start();
+                    sensors.accel.enabled = true;
+                    document.getElementById('accel-enable').disabled = true;
+                    document.getElementById('accel-record').disabled = false;
+                    
+                } catch (error) {
+                    console.warn('Accelerometer API not available, using devicemotion fallback:', error);
+                    startDeviceMotionFallback();
+                }
+            } else {
+                startDeviceMotionFallback();
+            }
+        }
+
+        function startDeviceMotionFallback() {
+            console.log('Starting devicemotion fallback...');
+            
+            if ('DeviceMotionEvent' in window) {
+                window.addEventListener('devicemotion', (event) => {
+                    const acceleration = event.accelerationIncludingGravity;
+                    if (acceleration) {
+                        const data = {
+                            x: acceleration.x,
+                            y: acceleration.y,
+                            z: acceleration.z,
+                            magnitude: Math.sqrt(acceleration.x**2 + acceleration.y**2 + acceleration.z**2),
+                            timestamp: Date.now()
+                        };
+                        
+                        updateAccelerometerData(data);
+                    }
+                });
+                
+                sensors.accel.enabled = true;
+                document.getElementById('accel-enable').disabled = true;
+                document.getElementById('accel-record').disabled = false;
+            } else {
+                alert('Accelerometer not supported on this device');
+            }
+        }
+
+        function updateAccelerometerData(data) {
+            document.getElementById('accel-x').textContent = data.x?.toFixed(2) || '--';
+            document.getElementById('accel-y').textContent = data.y?.toFixed(2) || '--';
+            document.getElementById('accel-z').textContent = data.z?.toFixed(2) || '--';
+            document.getElementById('accel-magnitude').textContent = data.magnitude?.toFixed(2) || '--';
+            
+            sparklines.accel.values.push(data.magnitude || 0);
+            if (sparklines.accel.values.length > sparklines.accel.maxPoints) {
+                sparklines.accel.values.shift();
+            }
+            drawSparkline('accel-sparkline', sparklines.accel.values);
+            
+            if (sensors.accel.recording) {
+                sensors.accel.data.push(data);
+            }
+        }
+
+        // Gyroscope
+        function enableGyroscope() {
+            console.log('Enabling gyroscope...');
+            
+            if ('Gyroscope' in window) {
+                try {
+                    const sensor = new Gyroscope({ frequency: 10 });
+                    
+                    sensor.addEventListener('reading', () => {
+                        const data = {
+                            x: sensor.x,
+                            y: sensor.y,
+                            z: sensor.z,
+                            magnitude: Math.sqrt(sensor.x**2 + sensor.y**2 + sensor.z**2),
+                            timestamp: Date.now()
+                        };
+                        
+                        updateGyroscopeData(data);
+                    });
+                    
+                    sensor.addEventListener('error', (error) => {
+                        console.warn('Gyroscope API failed, falling back to deviceorientation:', error);
+                        startDeviceOrientationFallback();
+                    });
+                    
+                    sensor.start();
+                    sensors.gyro.enabled = true;
+                    document.getElementById('gyro-enable').disabled = true;
+                    document.getElementById('gyro-record').disabled = false;
+                    
+                } catch (error) {
+                    console.warn('Gyroscope API not available, using deviceorientation fallback:', error);
+                    startDeviceOrientationFallback();
+                }
+            } else {
+                startDeviceOrientationFallback();
+            }
+        }
+
+        function startDeviceOrientationFallback() {
+            console.log('Starting deviceorientation fallback...');
+            
+            if ('DeviceOrientationEvent' in window) {
+                window.addEventListener('deviceorientation', (event) => {
+                    const data = {
+                        x: event.alpha,
+                        y: event.beta,
+                        z: event.gamma,
+                        magnitude: Math.sqrt((event.alpha || 0)**2 + (event.beta || 0)**2 + (event.gamma || 0)**2),
+                        timestamp: Date.now()
+                    };
+                    
+                    updateGyroscopeData(data);
+                });
+                
+                sensors.gyro.enabled = true;
+                document.getElementById('gyro-enable').disabled = true;
+                document.getElementById('gyro-record').disabled = false;
+            } else {
+                alert('Gyroscope not supported on this device');
+            }
+        }
+
+        function updateGyroscopeData(data) {
+            document.getElementById('gyro-x').textContent = data.x?.toFixed(2) || '--';
+            document.getElementById('gyro-y').textContent = data.y?.toFixed(2) || '--';
+            document.getElementById('gyro-z').textContent = data.z?.toFixed(2) || '--';
+            document.getElementById('gyro-magnitude').textContent = data.magnitude?.toFixed(2) || '--';
+            
+            sparklines.gyro.values.push(data.magnitude || 0);
+            if (sparklines.gyro.values.length > sparklines.gyro.maxPoints) {
+                sparklines.gyro.values.shift();
+            }
+            drawSparkline('gyro-sparkline', sparklines.gyro.values);
+            
+            if (sensors.gyro.recording) {
+                sensors.gyro.data.push(data);
+            }
+        }
+
+        // Sound
+        let audioContext, analyser, microphone;
+
+        function enableSound() {
+            console.log('Enabling sound sensor...');
+            
+            if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioContext.createAnalyser();
+                        microphone = audioContext.createMediaStreamSource(stream);
+                        
+                        analyser.fftSize = 256;
+                        microphone.connect(analyser);
+                        
+                        sensors.sound.enabled = true;
+                        document.getElementById('sound-enable').disabled = true;
+                        document.getElementById('sound-record').disabled = false;
+                        
+                        startSoundAnalysis();
+                    })
+                    .catch(error => {
+                        console.error('Error accessing microphone:', error);
+                        alert('Could not access microphone. Please check permissions.');
+                    });
+            } else {
+                alert('Microphone access not supported on this device');
+            }
+        }
+
+        function startSoundAnalysis() {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            
+            function updateSound() {
+                if (!sensors.sound.enabled) return;
+                
+                analyser.getByteTimeDomainData(dataArray);
+                
+                // Calculate RMS
+                let sum = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    const value = (dataArray[i] - 128) / 128;
+                    sum += value * value;
+                }
+                const rms = Math.sqrt(sum / bufferLength);
+                
+                // Convert to dB (approximate)
+                const db = 20 * Math.log10(rms) + 90;
+                
+                const data = {
+                    level: Math.max(0, db),
+                    rms: rms,
+                    timestamp: Date.now()
+                };
+                
+                updateSoundData(data);
+                requestAnimationFrame(updateSound);
+            }
+            
+            updateSound();
+        }
+
+        function updateSoundData(data) {
+            document.getElementById('sound-level').textContent = data.level?.toFixed(1) || '--';
+            document.getElementById('sound-rms').textContent = data.rms?.toFixed(4) || '--';
+            
+            sparklines.sound.values.push(data.level || 0);
+            if (sparklines.sound.values.length > sparklines.sound.maxPoints) {
+                sparklines.sound.values.shift();
+            }
+            drawSparkline('sound-sparkline', sparklines.sound.values);
+            
+            if (sensors.sound.recording) {
+                sensors.sound.data.push(data);
+            }
+        }
+
+        // Light
+        function enableLight() {
+            console.log('Enabling light sensor...');
+            
+            if ('AmbientLightSensor' in window) {
+                try {
+                    const sensor = new AmbientLightSensor({ frequency: 1 });
+                    
+                    sensor.addEventListener('reading', () => {
+                        const data = {
+                            level: sensor.illuminance,
+                            timestamp: Date.now()
+                        };
+                        
+                        updateLightData(data);
+                    });
+                    
+                    sensor.addEventListener('error', (error) => {
+                        console.warn('AmbientLightSensor failed:', error);
+                        alert('Light sensor not available on this device');
+                    });
+                    
+                    sensor.start();
+                    sensors.light.enabled = true;
+                    document.getElementById('light-enable').disabled = true;
+                    document.getElementById('light-record').disabled = false;
+                    
+                } catch (error) {
+                    console.warn('AmbientLightSensor not available:', error);
+                    alert('Light sensor not supported on this device');
+                }
+            } else {
+                alert('Light sensor not supported on this device');
+            }
+        }
+
+        function updateLightData(data) {
+            document.getElementById('light-level').textContent = data.level?.toFixed(1) || '--';
+            
+            sparklines.light.values.push(data.level || 0);
+            if (sparklines.light.values.length > sparklines.light.maxPoints) {
+                sparklines.light.values.shift();
+            }
+            drawSparkline('light-sparkline', sparklines.light.values);
+            
+            if (sensors.light.recording) {
+                sensors.light.data.push(data);
+            }
+        }
+
+        // Recording and Export
+        function toggleRecording(sensorType) {
+            const sensor = sensors[sensorType];
+            const button = document.getElementById(sensorType + '-record');
+            
+            if (sensor.recording) {
+                sensor.recording = false;
+                button.textContent = 'Start Recording';
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-secondary');
+            } else {
+                sensor.recording = true;
+                sensor.data = [];
+                button.textContent = 'Stop Recording';
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-danger');
+            }
+            
+            document.getElementById(sensorType + '-export').disabled = sensor.data.length === 0;
+        }
+
+        function exportData(sensorType) {
+            const sensor = sensors[sensorType];
+            if (sensor.data.length === 0) return;
+            
+            let csv = 'Timestamp,';
+            const firstRow = sensor.data[0];
+            
+            // Add headers
+            Object.keys(firstRow).forEach(key => {
+                if (key !== 'timestamp') {
+                    csv += key.charAt(0).toUpperCase() + key.slice(1) + ',';
+                }
+            });
+            csv = csv.slice(0, -1) + '\n';
+            
+            // Add data
+            sensor.data.forEach(row => {
+                csv += new Date(row.timestamp).toISOString() + ',';
+                Object.keys(row).forEach(key => {
+                    if (key !== 'timestamp') {
+                        csv += row[key] + ',';
+                    }
+                });
+                csv = csv.slice(0, -1) + '\n';
+            });
+            
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${sensorType}_data_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDebugInfo();
+            
+            // Add iOS-specific info
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'info';
+                infoDiv.innerHTML = '<strong>📱 iOS Detected:</strong> iOS Safari uses DeviceMotion/DeviceOrientation APIs instead of modern sensor APIs. This should work fine - try clicking "Enable" and allow motion permissions when prompted.';
+                
+                document.getElementById('accelerometer').insertBefore(infoDiv, document.getElementById('accel-debug'));
+                document.getElementById('gyroscope').insertBefore(infoDiv.cloneNode(true), document.getElementById('gyro-debug'));
+            }
+        });
+    </script>
+</body>
+</html>
