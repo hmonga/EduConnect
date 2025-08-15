@@ -1562,6 +1562,74 @@
                 triggerReaction('Fe+Cl', 'Iron + Chlorine', '🔥 Iron burns in chlorine gas, producing iron(III) chloride.', '#8b4513', 5000);
             } else if (hasElement('Mg') && hasElement('O') && chemistryLab.temperature > 400 && !isReactionActive('Mg+O')) {
                 triggerReaction('Mg+O', 'Magnesium + Oxygen (Very Hot)', '💥 Bright white flame! Magnesium burns brilliantly in oxygen, producing magnesium oxide.', '#ffffff', 6000);
+            } else if (hasLiquid('Alcohol') && hasElement('Na') && !isReactionActive('Alcohol+Na')) {
+                triggerReaction('Alcohol+Na', 'Alcohol + Sodium', '🫧 Sodium reacts with alcohol, producing hydrogen gas and sodium ethoxide.', '#ffd93d', 4000);
+            } else if (hasLiquid('Alcohol') && hasElement('K') && !isReactionActive('Alcohol+K')) {
+                triggerReaction('Alcohol+K', 'Alcohol + Potassium', '💥 Violent reaction! Potassium reacts explosively with alcohol, producing hydrogen gas and potassium ethoxide.', '#ff1493', 5000);
+            } else if (hasLiquid('Alcohol') && hasElement('Ca') && !isReactionActive('Alcohol+Ca')) {
+                triggerReaction('Alcohol+Ca', 'Alcohol + Calcium', '🫧 Calcium reacts with alcohol, producing hydrogen gas and calcium ethoxide.', '#ffb6c1', 4000);
+            } else if (hasLiquid('Alcohol') && hasElement('Mg') && !isReactionActive('Alcohol+Mg')) {
+                triggerReaction('Alcohol+Mg', 'Alcohol + Magnesium', '🫧 Magnesium reacts slowly with alcohol, producing hydrogen gas and magnesium ethoxide.', '#dda0dd', 5000);
+            } else if (hasLiquid('Alcohol') && hasElement('Fe') && chemistryLab.temperature > 100 && !isReactionActive('Alcohol+Fe')) {
+                triggerReaction('Alcohol+Fe', 'Alcohol + Iron (Hot)', '🔥 Iron catalyzes alcohol oxidation at high temperature, producing aldehydes.', '#8b4513', 4000);
+            } else if (hasLiquid('Alcohol') && hasElement('Cu') && chemistryLab.temperature > 150 && !isReactionActive('Alcohol+Cu')) {
+                triggerReaction('Alcohol+Cu', 'Alcohol + Copper (Hot)', '🔥 Copper catalyzes alcohol dehydrogenation, producing aldehydes and hydrogen.', '#cd7f32', 5000);
+            } else if (hasLiquid('Alcohol') && hasElement('O') && chemistryLab.temperature > 200 && !isReactionActive('Alcohol+O')) {
+                triggerReaction('Alcohol+O', 'Alcohol + Oxygen (Hot)', '🔥 Combustion! Alcohol burns in oxygen, producing carbon dioxide and water.', '#ff4500', 6000);
+            } else if (hasLiquid('Alcohol') && hasLiquid('Acid') && chemistryLab.temperature > 80 && !isReactionActive('Alcohol+Acid')) {
+                triggerReaction('Alcohol+Acid', 'Alcohol + Acid (Hot)', '🧪 Esterification reaction! Alcohol and acid combine to form an ester and water.', '#9370db', 5000);
+            } else if (hasLiquid('Base') && hasElement('Na') && !isReactionActive('Base+Na')) {
+                triggerReaction('Base+Na', 'Base + Sodium', '💥 Violent reaction! Sodium reacts explosively with base, producing hydrogen gas.', '#ff0000', 5000);
+            } else if (hasLiquid('Base') && hasElement('K') && !isReactionActive('Base+K')) {
+                triggerReaction('Base+K', 'Base + Potassium', '💥 Extremely violent! Potassium explodes in base, producing hydrogen gas.', '#ff0000', 6000);
+            } else if (hasLiquid('Base') && hasElement('Ca') && !isReactionActive('Base+Ca')) {
+                triggerReaction('Base+Ca', 'Base + Calcium', '🫧 Calcium reacts with base, producing hydrogen gas and calcium hydroxide.', '#ffb6c1', 4000);
+            } else if (hasLiquid('Base') && hasElement('Mg') && !isReactionActive('Base+Mg')) {
+                triggerReaction('Base+Mg', 'Base + Magnesium', '🫧 Magnesium reacts with base, producing hydrogen gas and magnesium hydroxide.', '#dda0dd', 4000);
+            } else if (hasLiquid('Base') && hasElement('Fe') && chemistryLab.temperature > 50 && !isReactionActive('Base+Fe')) {
+                triggerReaction('Base+Fe', 'Base + Iron (Hot)', '🫧 Iron reacts with hot base, producing hydrogen gas and iron hydroxide.', '#8b4513', 4000);
+            } else if (hasLiquid('Base') && hasElement('Cu') && chemistryLab.temperature > 100 && !isReactionActive('Base+Cu')) {
+                triggerReaction('Base+Cu', 'Base + Copper (Hot)', '🫧 Copper reacts with hot base, producing copper hydroxide.', '#cd7f32', 4000);
+            } else if (hasLiquid('Water') && hasElement('Cl') && chemistryLab.temperature > 20 && !isReactionActive('Water+Cl')) {
+                triggerReaction('Water+Cl', 'Water + Chlorine', '🧪 Chlorine dissolves in water, forming hypochlorous acid and hydrochloric acid.', '#6bcf7f', 4000);
+            } else if (hasLiquid('Water') && hasElement('N') && chemistryLab.temperature > 50 && !isReactionActive('Water+N')) {
+                triggerReaction('Water+N', 'Water + Nitrogen (Hot)', '🫧 Nitrogen dissolves slightly in hot water, forming weak nitric acid.', '#3498db', 3000);
+            } else if (hasLiquid('Water') && hasElement('S') && chemistryLab.temperature > 30 && !isReactionActive('Water+S')) {
+                triggerReaction('Water+S', 'Water + Sulfur (Hot)', '💧 Sulfur dissolves slightly in hot water, forming weak sulfuric acid.', '#f39c12', 3000);
+            } else if (hasLiquid('Water') && hasElement('P') && chemistryLab.temperature > 40 && !isReactionActive('Water+P')) {
+                triggerReaction('Water+P', 'Water + Phosphorus (Hot)', '💧 Phosphorus reacts with hot water, forming phosphoric acid.', '#e74c3c', 4000);
+            } else if (hasElement('C') && hasElement('H') && chemistryLab.temperature > 300 && !isReactionActive('C+H')) {
+                triggerReaction('C+H', 'Carbon + Hydrogen (Very Hot)', '🔥 Carbon and hydrogen combine at high temperature, forming methane gas.', '#2c3e50', 5000);
+            } else if (hasElement('N') && hasElement('H') && chemistryLab.temperature > 400 && !isReactionActive('N+H')) {
+                triggerReaction('N+H', 'Nitrogen + Hydrogen (Very Hot)', '🔥 Nitrogen and hydrogen combine at high temperature, forming ammonia gas.', '#3498db', 6000);
+            } else if (hasElement('S') && hasElement('H') && chemistryLab.temperature > 200 && !isReactionActive('S+H')) {
+                triggerReaction('S+H', 'Sulfur + Hydrogen (Hot)', '🔥 Sulfur and hydrogen combine at high temperature, forming hydrogen sulfide gas.', '#f39c12', 4000);
+            } else if (hasElement('Cl') && hasElement('H') && chemistryLab.temperature > 100 && !isReactionActive('Cl+H')) {
+                triggerReaction('Cl+H', 'Chlorine + Hydrogen (Hot)', '💥 Explosive reaction! Chlorine and hydrogen combine to form hydrogen chloride gas.', '#6bcf7f', 3000);
+            } else if (hasElement('Au') && hasLiquid('Acid') && chemistryLab.temperature > 150 && !isReactionActive('Au+Acid')) {
+                triggerReaction('Au+Acid', 'Gold + Acid (Hot)', '✨ Gold is resistant to most acids, even at high temperature. No visible reaction.', '#ffd700', 2000);
+            } else if (hasElement('Ag') && hasLiquid('Base') && chemistryLab.temperature > 100 && !isReactionActive('Ag+Base')) {
+                triggerReaction('Ag+Base', 'Silver + Base (Hot)', '✨ Silver is resistant to most bases, even at high temperature. No visible reaction.', '#c0c0c0', 2000);
+            } else if (hasLiquid('Water') && hasLiquid('Acid') && chemistryLab.temperature > 50 && !isReactionActive('Water+Acid')) {
+                triggerReaction('Water+Acid', 'Water + Acid (Hot)', '🧪 Dilution reaction! Acid dissolves in water, forming a diluted solution.', '#ff6b6b', 3000);
+            } else if (hasLiquid('Water') && hasLiquid('Base') && chemistryLab.temperature > 50 && !isReactionActive('Water+Base')) {
+                triggerReaction('Water+Base', 'Water + Base (Hot)', '🧪 Dilution reaction! Base dissolves in water, forming a diluted solution.', '#ffeb3b', 3000);
+            } else if (hasLiquid('Water') && hasLiquid('Alcohol') && chemistryLab.temperature > 30 && !isReactionActive('Water+Alcohol')) {
+                triggerReaction('Water+Alcohol', 'Water + Alcohol (Warm)', '🧪 Miscibility! Water and alcohol mix completely, forming a homogeneous solution.', '#87ceeb', 3000);
+            } else if (hasElement('Na') && hasElement('K') && chemistryLab.temperature > 100 && !isReactionActive('Na+K')) {
+                triggerReaction('Na+K', 'Sodium + Potassium (Hot)', '💥 Alloy formation! Sodium and potassium combine to form a liquid alloy.', '#ff69b4', 4000);
+            } else if (hasElement('Fe') && hasElement('Cu') && chemistryLab.temperature > 500 && !isReactionActive('Fe+Cu')) {
+                triggerReaction('Fe+Cu', 'Iron + Copper (Very Hot)', '🔥 Alloy formation! Iron and copper combine to form bronze alloy.', '#cd7f32', 5000);
+            } else if (hasElement('Ag') && hasElement('Au') && chemistryLab.temperature > 600 && !isReactionActive('Ag+Au')) {
+                triggerReaction('Ag+Au', 'Silver + Gold (Very Hot)', '✨ Alloy formation! Silver and gold combine to form electrum alloy.', '#ffd700', 4000);
+            } else if (hasElement('C') && hasElement('S') && chemistryLab.temperature > 200 && !isReactionActive('C+S')) {
+                triggerReaction('C+S', 'Carbon + Sulfur (Hot)', '🔥 Carbon and sulfur combine to form carbon disulfide.', '#f39c12', 4000);
+            } else if (hasElement('P') && hasElement('Cl') && chemistryLab.temperature > 50 && !isReactionActive('P+Cl')) {
+                triggerReaction('P+Cl', 'Phosphorus + Chlorine', '💥 Phosphorus reacts violently with chlorine, forming phosphorus trichloride.', '#6bcf7f', 4000);
+            } else if (hasElement('S') && hasElement('Cl') && chemistryLab.temperature > 100 && !isReactionActive('S+Cl')) {
+                triggerReaction('S+Cl', 'Sulfur + Chlorine (Hot)', '🔥 Sulfur reacts with chlorine, forming sulfur dichloride.', '#6bcf7f', 4000);
+            } else if (hasElement('N') && hasElement('O') && chemistryLab.temperature > 2000 && !isReactionActive('N+O')) {
+                triggerReaction('N+O', 'Nitrogen + Oxygen (Extreme Heat)', '🔥 Nitrogen and oxygen combine at extreme temperature, forming nitrogen oxides.', '#ff4500', 7000);
             }
         }
 
