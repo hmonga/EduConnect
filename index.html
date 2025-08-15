@@ -792,6 +792,43 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="sparkline-container" style="margin-top: 20px;">
+                    <div class="sparkline-title">📱 Use PocketLab Offline & Add to Home Screen</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 15px;">🔄 Offline Functionality</h4>
+                            <p style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">PocketLab works completely offline! Visit once while connected, then use it anywhere without internet.</p>
+                            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-size: 0.9rem;">
+                                <strong>How it works:</strong><br>
+                                • First visit caches the app<br>
+                                • Works offline after initial load<br>
+                                • Automatic updates when online
+                            </div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 15px;">📲 Add to Home Screen</h4>
+                            <p style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">Get an app-like experience by adding PocketLab to your home screen.</p>
+                            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-size: 0.9rem;">
+                                <strong>How to add:</strong><br>
+                                <strong>iOS Safari:</strong> Tap Share → Add to Home Screen<br>
+                                <strong>Android Chrome:</strong> Tap Menu → Add to Home Screen<br>
+                                <strong>Desktop:</strong> Install prompt will appear
+                            </div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 15px;">💡 Benefits</h4>
+                            <ul style="font-size: 0.95rem; line-height: 1.6; margin: 0; padding-left: 20px;">
+                                <li>Use anywhere without WiFi</li>
+                                <li>Faster loading from cache</li>
+                                <li>App-like experience</li>
+                                <li>Data persists across sessions</li>
+                                <li>Automatic updates</li>
+                                <li>Works on all devices</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
 
 
@@ -1360,6 +1397,68 @@
                         console.log('ServiceWorker registration failed');
                     });
             });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button after a delay
+            setTimeout(() => {
+                showInstallPrompt();
+            }, 3000);
+        });
+
+        function showInstallPrompt() {
+            const installDiv = document.createElement('div');
+            installDiv.id = 'install-prompt';
+            installDiv.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 25px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                font-size: 0.9rem;
+                max-width: 90%;
+            `;
+            
+            installDiv.innerHTML = `
+                <span>📱 Install PocketLab for offline access</span>
+                <button onclick="installApp()" style="background: white; color: #667eea; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer;">Install</button>
+                <button onclick="dismissInstall()" style="background: transparent; color: white; border: 1px solid white; padding: 8px 16px; border-radius: 20px; cursor: pointer;">Later</button>
+            `;
+            
+            document.body.appendChild(installDiv);
+        }
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    dismissInstall();
+                });
+            }
+        }
+
+        function dismissInstall() {
+            const prompt = document.getElementById('install-prompt');
+            if (prompt) {
+                prompt.remove();
+            }
         }
 
         // Initialize
