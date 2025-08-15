@@ -536,6 +536,19 @@
             light: { values: [], maxPoints: 100 }
         };
 
+        // Smoothing data for stable display
+        let smoothing = {
+            accel: { x: 0, y: 0, z: 0, magnitude: 0 },
+            gyro: { x: 0, y: 0, z: 0, magnitude: 0 },
+            sound: { level: 0, rms: 0 },
+            light: { level: 0 }
+        };
+
+        // Update smoothing values with low-pass filter
+        function smoothValue(current, target, factor = 0.1) {
+            return current + (target - current) * factor;
+        }
+
         // Demo mode for desktop testing
         let demoMode = false;
         let demoInterval;
@@ -677,12 +690,19 @@
         }
 
         function updateAccelerometerData(data) {
-            document.getElementById('accel-x').textContent = data.x?.toFixed(2) || '--';
-            document.getElementById('accel-y').textContent = data.y?.toFixed(2) || '--';
-            document.getElementById('accel-z').textContent = data.z?.toFixed(2) || '--';
-            document.getElementById('accel-magnitude').textContent = data.magnitude?.toFixed(2) || '--';
+            // Apply smoothing to reduce jitter
+            smoothing.accel.x = smoothValue(smoothing.accel.x, data.x || 0, 0.15);
+            smoothing.accel.y = smoothValue(smoothing.accel.y, data.y || 0, 0.15);
+            smoothing.accel.z = smoothValue(smoothing.accel.z, data.z || 0, 0.15);
+            smoothing.accel.magnitude = smoothValue(smoothing.accel.magnitude, data.magnitude || 0, 0.15);
             
-            sparklines.accel.values.push(data.magnitude || 0);
+            // Display rounded values (1 decimal place for better readability)
+            document.getElementById('accel-x').textContent = Math.round(smoothing.accel.x * 10) / 10;
+            document.getElementById('accel-y').textContent = Math.round(smoothing.accel.y * 10) / 10;
+            document.getElementById('accel-z').textContent = Math.round(smoothing.accel.z * 10) / 10;
+            document.getElementById('accel-magnitude').textContent = Math.round(smoothing.accel.magnitude * 10) / 10;
+            
+            sparklines.accel.values.push(smoothing.accel.magnitude);
             if (sparklines.accel.values.length > sparklines.accel.maxPoints) {
                 sparklines.accel.values.shift();
             }
@@ -757,12 +777,19 @@
         }
 
         function updateGyroscopeData(data) {
-            document.getElementById('gyro-x').textContent = data.x?.toFixed(2) || '--';
-            document.getElementById('gyro-y').textContent = data.y?.toFixed(2) || '--';
-            document.getElementById('gyro-z').textContent = data.z?.toFixed(2) || '--';
-            document.getElementById('gyro-magnitude').textContent = data.magnitude?.toFixed(2) || '--';
+            // Apply smoothing to reduce jitter
+            smoothing.gyro.x = smoothValue(smoothing.gyro.x, data.x || 0, 0.15);
+            smoothing.gyro.y = smoothValue(smoothing.gyro.y, data.y || 0, 0.15);
+            smoothing.gyro.z = smoothValue(smoothing.gyro.z, data.z || 0, 0.15);
+            smoothing.gyro.magnitude = smoothValue(smoothing.gyro.magnitude, data.magnitude || 0, 0.15);
             
-            sparklines.gyro.values.push(data.magnitude || 0);
+            // Display rounded values (1 decimal place for better readability)
+            document.getElementById('gyro-x').textContent = Math.round(smoothing.gyro.x * 10) / 10;
+            document.getElementById('gyro-y').textContent = Math.round(smoothing.gyro.y * 10) / 10;
+            document.getElementById('gyro-z').textContent = Math.round(smoothing.gyro.z * 10) / 10;
+            document.getElementById('gyro-magnitude').textContent = Math.round(smoothing.gyro.magnitude * 10) / 10;
+            
+            sparklines.gyro.values.push(smoothing.gyro.magnitude);
             if (sparklines.gyro.values.length > sparklines.gyro.maxPoints) {
                 sparklines.gyro.values.shift();
             }
@@ -838,10 +865,15 @@
         }
 
         function updateSoundData(data) {
-            document.getElementById('sound-level').textContent = data.level?.toFixed(1) || '--';
-            document.getElementById('sound-rms').textContent = data.rms?.toFixed(4) || '--';
+            // Apply smoothing to reduce jitter
+            smoothing.sound.level = smoothValue(smoothing.sound.level, data.level || 0, 0.2);
+            smoothing.sound.rms = smoothValue(smoothing.sound.rms, data.rms || 0, 0.2);
             
-            sparklines.sound.values.push(data.level || 0);
+            // Display rounded values
+            document.getElementById('sound-level').textContent = Math.round(smoothing.sound.level);
+            document.getElementById('sound-rms').textContent = smoothing.sound.rms.toFixed(3);
+            
+            sparklines.sound.values.push(smoothing.sound.level);
             if (sparklines.sound.values.length > sparklines.sound.maxPoints) {
                 sparklines.sound.values.shift();
             }
@@ -889,9 +921,13 @@
         }
 
         function updateLightData(data) {
-            document.getElementById('light-level').textContent = data.level?.toFixed(1) || '--';
+            // Apply smoothing to reduce jitter
+            smoothing.light.level = smoothValue(smoothing.light.level, data.level || 0, 0.2);
             
-            sparklines.light.values.push(data.level || 0);
+            // Display rounded values
+            document.getElementById('light-level').textContent = Math.round(smoothing.light.level);
+            
+            sparklines.light.values.push(smoothing.light.level);
             if (sparklines.light.values.length > sparklines.light.maxPoints) {
                 sparklines.light.values.shift();
             }
