@@ -172,7 +172,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- **Live Demo**: [PocketLab](https://your-deployment-url.com)
+- **Live Demo**: [PocketLab](https://edu-connect-cyan.vercel.app/)
 - **GitHub Repository**: [EduConnect](https://github.com/hmonga/EduConnect)
 - **Hackathon**: Empower Hacks 3.0 - Project Empower
 
