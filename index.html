@@ -1327,7 +1327,8 @@
             isHeating: false,
             isCooling: false,
             activeReactions: new Set(), // Track active reactions to prevent duplicates
-            reactionCooldown: {} // Track cooldowns for reactions
+            reactionCooldown: {}, // Track cooldowns for reactions
+            completedReactions: new Set() // Track completed reactions for this session
         };
 
         // Chemistry data
@@ -1526,19 +1527,19 @@
             const contents = chemistryLab.contents;
             
             // Check for specific reactions with cooldown
-            if (hasElement('Na') && hasLiquid('Water') && !isReactionActive('Na+Water')) {
+            if (hasElement('Na') && hasLiquid('Water') && !isReactionActive('Na+Water') && !chemistryLab.completedReactions.has('Na+Water')) {
                 triggerReaction('Na+Water', 'Sodium + Water', '💥 Explosive reaction! Sodium reacts violently with water, producing hydrogen gas and sodium hydroxide.', '#ff6b6b', 5000);
-            } else if (hasElement('Fe') && hasLiquid('Acid') && !isReactionActive('Fe+Acid')) {
+            } else if (hasElement('Fe') && hasLiquid('Acid') && !isReactionActive('Fe+Acid') && !chemistryLab.completedReactions.has('Fe+Acid')) {
                 triggerReaction('Fe+Acid', 'Iron + Acid', '🫧 Iron dissolves in acid, producing hydrogen gas and iron chloride.', '#ffa500', 4000);
-            } else if (hasElement('Cu') && hasLiquid('Acid') && !isReactionActive('Cu+Acid')) {
+            } else if (hasElement('Cu') && hasLiquid('Acid') && !isReactionActive('Cu+Acid') && !isReactionCompleted('Cu+Acid')) {
                 triggerReaction('Cu+Acid', 'Copper + Acid', '🫧 Copper reacts slowly with acid, producing copper chloride and hydrogen gas.', '#32cd32', 6000);
-            } else if (hasElement('Ag') && hasLiquid('Acid') && !isReactionActive('Ag+Acid')) {
+            } else if (hasElement('Ag') && hasLiquid('Acid') && !isReactionActive('Ag+Acid') && !isReactionCompleted('Ag+Acid')) {
                 triggerReaction('Ag+Acid', 'Silver + Acid', '✨ Silver is resistant to most acids. No visible reaction.', '#c0c0c0', 3000);
-            } else if (hasElement('H') && hasElement('O') && chemistryLab.temperature > 100 && !isReactionActive('H+O')) {
+            } else if (hasElement('H') && hasElement('O') && chemistryLab.temperature > 100 && !isReactionActive('H+O') && !isReactionCompleted('H+O')) {
                 triggerReaction('H+O', 'Hydrogen + Oxygen (Hot)', '💥 Combustion reaction! Hydrogen and oxygen combine to form water vapor.', '#ff4500', 8000);
-            } else if (hasLiquid('Acid') && hasLiquid('Base') && !isReactionActive('Acid+Base')) {
+            } else if (hasLiquid('Acid') && hasLiquid('Base') && !isReactionActive('Acid+Base') && !isReactionCompleted('Acid+Base')) {
                 triggerReaction('Acid+Base', 'Acid + Base', '🧪 Neutralization reaction! Acid and base neutralize each other, forming salt and water.', '#9370db', 5000);
-            } else if (hasElement('Na') && hasLiquid('Acid') && !isReactionActive('Na+Acid')) {
+            } else if (hasElement('Na') && hasLiquid('Acid') && !isReactionActive('Na+Acid') && !isReactionCompleted('Na+Acid')) {
                 triggerReaction('Na+Acid', 'Sodium + Acid', '💥 Violent reaction! Sodium reacts explosively with acid, producing hydrogen gas and sodium chloride.', '#ff0000', 6000);
             } else if (hasElement('Fe') && hasElement('O') && chemistryLab.temperature > 50 && !isReactionActive('Fe+O')) {
                 triggerReaction('Fe+O', 'Iron + Oxygen (Hot)', '🔥 Oxidation reaction! Iron rusts when exposed to oxygen at high temperature.', '#8b4513', 4000);
@@ -1562,7 +1563,7 @@
                 triggerReaction('Fe+Cl', 'Iron + Chlorine', '🔥 Iron burns in chlorine gas, producing iron(III) chloride.', '#8b4513', 5000);
             } else if (hasElement('Mg') && hasElement('O') && chemistryLab.temperature > 400 && !isReactionActive('Mg+O')) {
                 triggerReaction('Mg+O', 'Magnesium + Oxygen (Very Hot)', '💥 Bright white flame! Magnesium burns brilliantly in oxygen, producing magnesium oxide.', '#ffffff', 6000);
-            } else if (hasLiquid('Alcohol') && hasElement('Na') && !isReactionActive('Alcohol+Na')) {
+            } else if (hasLiquid('Alcohol') && hasElement('Na') && !isReactionActive('Alcohol+Na') && !isReactionCompleted('Alcohol+Na')) {
                 triggerReaction('Alcohol+Na', 'Alcohol + Sodium', '🫧 Sodium reacts with alcohol, producing hydrogen gas and sodium ethoxide.', '#ffd93d', 4000);
             } else if (hasLiquid('Alcohol') && hasElement('K') && !isReactionActive('Alcohol+K')) {
                 triggerReaction('Alcohol+K', 'Alcohol + Potassium', '💥 Violent reaction! Potassium reacts explosively with alcohol, producing hydrogen gas and potassium ethoxide.', '#ff1493', 5000);
@@ -1645,9 +1646,14 @@
             return chemistryLab.activeReactions.has(reactionId);
         }
 
+        function isReactionCompleted(reactionId) {
+            return chemistryLab.completedReactions.has(reactionId);
+        }
+
         function triggerReaction(reactionId, name, description, color, cooldownMs) {
-            // Add to active reactions
+            // Add to active reactions and completed reactions
             chemistryLab.activeReactions.add(reactionId);
+            chemistryLab.completedReactions.add(reactionId);
             
             // Add to reaction history
             chemistryLab.reactions.push({ name, description, timestamp: new Date() });
@@ -1810,7 +1816,8 @@
                 isHeating: false,
                 isCooling: false,
                 activeReactions: new Set(),
-                reactionCooldown: {}
+                reactionCooldown: {},
+                completedReactions: new Set()
             };
             
             updateContainerDisplay();
