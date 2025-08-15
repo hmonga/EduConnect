@@ -399,18 +399,6 @@
                     <div class="sparkline-title">Real-time Motion</div>
                     <canvas id="accel-sparkline"></canvas>
                 </div>
-                
-                <div class="sparkline-container">
-                    <div class="sparkline-title">📱 Phone Orientation Guide</div>
-                    <div style="text-align: center; padding: 20px; background: #f0f4f8; border-radius: 10px; margin: 10px 0;">
-                        <div style="font-size: 1.2rem; margin-bottom: 15px;">🔄 <strong>How to Test Each Axis:</strong></div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; text-align: left;">
-                            <div><strong>X-axis (Left/Right):</strong><br>Tilt phone sideways - watch X value change</div>
-                            <div><strong>Y-axis (Forward/Back):</strong><br>Tilt phone forward/backward - watch Y value change</div>
-                            <div><strong>Z-axis (Up/Down):</strong><br>Move phone up/down - watch Z value change</div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="controls">
                     <button class="btn btn-primary" id="accel-enable" onclick="enableAccelerometer()">Enable Sensor</button>
@@ -548,6 +536,10 @@
             light: { values: [], maxPoints: 100 }
         };
 
+        // Demo mode for desktop testing
+        let demoMode = false;
+        let demoInterval;
+
         // Navigation
         function showSection(section, event) {
             document.querySelectorAll('.sensor-card').forEach(card => card.classList.remove('active'));
@@ -659,16 +651,10 @@
 
         function startDeviceMotionFallback() {
             console.log('Starting devicemotion fallback...');
-            console.log('DeviceMotionEvent available:', 'DeviceMotionEvent' in window);
             
             if ('DeviceMotionEvent' in window) {
-                let permissionRequested = false;
-                
-                const motionHandler = (event) => {
-                    console.log('DeviceMotion event received:', event);
+                window.addEventListener('devicemotion', (event) => {
                     const acceleration = event.accelerationIncludingGravity;
-                    console.log('Acceleration data:', acceleration);
-                    
                     if (acceleration) {
                         const data = {
                             x: acceleration.x,
@@ -678,51 +664,14 @@
                             timestamp: Date.now()
                         };
                         
-                        console.log('Processed accelerometer data:', data);
                         updateAccelerometerData(data);
-                    } else {
-                        console.log('No acceleration data in event');
                     }
-                };
+                });
                 
-                // Request permission on iOS
-                if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    console.log('iOS detected, requesting motion permission...');
-                    
-                    // iOS requires user interaction to request permission
-                    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                        DeviceMotionEvent.requestPermission()
-                            .then(permissionState => {
-                                console.log('Motion permission result:', permissionState);
-                                if (permissionState === 'granted') {
-                                    window.addEventListener('devicemotion', motionHandler);
-                                    sensors.accel.enabled = true;
-                                    document.getElementById('accel-enable').disabled = true;
-                                    document.getElementById('accel-record').disabled = false;
-                                } else {
-                                    alert('Motion permission denied. Please allow motion access in iOS Settings.');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error requesting motion permission:', error);
-                                alert('Could not request motion permission. Please check iOS Settings.');
-                            });
-                    } else {
-                        // Fallback for older iOS versions
-                        window.addEventListener('devicemotion', motionHandler);
-                        sensors.accel.enabled = true;
-                        document.getElementById('accel-enable').disabled = true;
-                        document.getElementById('accel-record').disabled = false;
-                    }
-                } else {
-                    // Non-iOS devices
-                    window.addEventListener('devicemotion', motionHandler);
-                    sensors.accel.enabled = true;
-                    document.getElementById('accel-enable').disabled = true;
-                    document.getElementById('accel-record').disabled = false;
-                }
+                sensors.accel.enabled = true;
+                document.getElementById('accel-enable').disabled = true;
+                document.getElementById('accel-record').disabled = false;
             } else {
-                console.error('DeviceMotionEvent not available');
                 alert('Accelerometer not supported on this device');
             }
         }
@@ -922,7 +871,7 @@
                     
                     sensor.addEventListener('error', (error) => {
                         console.warn('AmbientLightSensor failed:', error);
-                        startCameraLightFallback();
+                        alert('Light sensor not available on this device');
                     });
                     
                     sensor.start();
@@ -932,79 +881,8 @@
                     
                 } catch (error) {
                     console.warn('AmbientLightSensor not available:', error);
-                    startCameraLightFallback();
+                    alert('Light sensor not supported on this device');
                 }
-            } else {
-                startCameraLightFallback();
-            }
-        }
-        
-        function startCameraLightFallback() {
-            console.log('Starting camera-based light sensor fallback...');
-            
-            if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                    .then(stream => {
-                        const video = document.createElement('video');
-                        video.srcObject = stream;
-                        video.style.display = 'none';
-                        document.body.appendChild(video);
-                        
-                        video.onloadedmetadata = () => {
-                            video.play();
-                            
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            
-                            function analyzeLight() {
-                                if (!sensors.light.enabled) return;
-                                
-                                canvas.width = video.videoWidth;
-                                canvas.height = video.videoHeight;
-                                ctx.drawImage(video, 0, 0);
-                                
-                                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                                const data = imageData.data;
-                                
-                                // Calculate average brightness
-                                let totalBrightness = 0;
-                                for (let i = 0; i < data.length; i += 4) {
-                                    const r = data[i];
-                                    const g = data[i + 1];
-                                    const b = data[i + 2];
-                                    // Convert RGB to brightness (luminance)
-                                    const brightness = (0.299 * r + 0.587 * g + 0.114 * b);
-                                    totalBrightness += brightness;
-                                }
-                                
-                                const averageBrightness = totalBrightness / (data.length / 4);
-                                // Convert to approximate lux (very rough approximation)
-                                const lux = averageBrightness * 0.1;
-                                
-                                const lightData = {
-                                    level: lux,
-                                    timestamp: Date.now()
-                                };
-                                
-                                updateLightData(lightData);
-                                requestAnimationFrame(analyzeLight);
-                            }
-                            
-                            analyzeLight();
-                        });
-                        
-                        sensors.light.enabled = true;
-                        document.getElementById('light-enable').disabled = true;
-                        document.getElementById('light-record').disabled = false;
-                        
-                        // Update button text to indicate camera usage
-                        document.getElementById('light-enable').textContent = 'Using Camera';
-                        
-                    })
-                    .catch(error => {
-                        console.error('Camera access failed:', error);
-                        alert('Light sensor not available. Camera access denied or not supported.');
-                    });
             } else {
                 alert('Light sensor not supported on this device');
             }
@@ -1081,10 +959,6 @@
             window.URL.revokeObjectURL(url);
         }
 
-        // Demo mode for desktop testing
-        let demoMode = false;
-        let demoInterval;
-        
         function startDemoMode() {
             if (demoMode) {
                 stopDemoMode();
@@ -1125,7 +999,7 @@
                 btn.style.background = '#f56565';
             });
         }
-        
+
         function stopDemoMode() {
             demoMode = false;
             if (demoInterval) {
