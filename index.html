@@ -360,6 +360,15 @@
                 <p class="sensor-description">
                     Measure acceleration in X, Y, and Z axes. Perfect for motion detection, orientation sensing, and physics experiments.
                 </p>
+                
+                <div class="info">
+                    <strong>📊 Understanding the Values:</strong><br>
+                    • <strong>X-axis</strong>: Left/Right tilt (roll) - changes when you tilt phone sideways<br>
+                    • <strong>Y-axis</strong>: Forward/Backward tilt (pitch) - changes when you tilt phone forward/back<br>
+                    • <strong>Z-axis</strong>: Up/Down + gravity (~9.8 m/s²) - changes with vertical movement<br>
+                    • <strong>Magnitude</strong>: Total acceleration combining all three axes<br><br>
+                    <strong>💡 Try this:</strong> Hold phone flat, then tilt it in different directions and watch the values change!
+                </div>
 
                 <div class="debug-info" id="accel-debug"></div>
 
@@ -389,6 +398,18 @@
                 <div class="sparkline-container">
                     <div class="sparkline-title">Real-time Motion</div>
                     <canvas id="accel-sparkline"></canvas>
+                </div>
+                
+                <div class="sparkline-container">
+                    <div class="sparkline-title">📱 Phone Orientation Guide</div>
+                    <div style="text-align: center; padding: 20px; background: #f0f4f8; border-radius: 10px; margin: 10px 0;">
+                        <div style="font-size: 1.2rem; margin-bottom: 15px;">🔄 <strong>How to Test Each Axis:</strong></div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; text-align: left;">
+                            <div><strong>X-axis (Left/Right):</strong><br>Tilt phone sideways - watch X value change</div>
+                            <div><strong>Y-axis (Forward/Back):</strong><br>Tilt phone forward/backward - watch Y value change</div>
+                            <div><strong>Z-axis (Up/Down):</strong><br>Move phone up/down - watch Z value change</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="controls">
