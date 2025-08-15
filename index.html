@@ -950,42 +950,7 @@
 
         // Light
         function enableLight() {
-            console.log('Enabling light sensor...');
-            
-            if ('AmbientLightSensor' in window) {
-                try {
-                    const sensor = new AmbientLightSensor({ frequency: 1 });
-                    
-                    sensor.addEventListener('reading', () => {
-                        const data = {
-                            level: sensor.illuminance,
-                            timestamp: Date.now()
-                        };
-                        
-                        updateLightData(data);
-                    });
-                    
-                    sensor.addEventListener('error', (error) => {
-                        console.warn('AmbientLightSensor failed:', error);
-                        startCameraLightFallback();
-                    });
-                    
-                    sensor.start();
-                    sensors.light.enabled = true;
-                    document.getElementById('light-enable').disabled = true;
-                    document.getElementById('light-record').disabled = false;
-                    
-                } catch (error) {
-                    console.warn('AmbientLightSensor not available:', error);
-                    startCameraLightFallback();
-                }
-            } else {
-                startCameraLightFallback();
-            }
-        }
-
-        function startCameraLightFallback() {
-            console.log('Starting camera-based light sensor fallback...');
+            console.log('Enabling camera-based light sensor...');
             
             if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -1043,10 +1008,10 @@
                     })
                     .catch(error => {
                         console.error('Camera access failed:', error);
-                        alert('Light sensor not available. Camera access denied or not supported.');
+                        alert('Camera access denied. Please allow camera permissions.');
                     });
             } else {
-                alert('Light sensor not supported on this device');
+                alert('Camera not supported on this device');
             }
         }
 
