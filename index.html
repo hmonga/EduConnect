@@ -1283,6 +1283,9 @@
 
             // Add educational tips containers
             addEducationalTips();
+            
+            // Initialize chemistry lab
+            initChemistryLab();
         });
 
         function addEducationalTips() {
@@ -1772,36 +1775,6 @@
             window.URL.revokeObjectURL(url);
         }
 
-        // Initialize chemistry lab when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            updateDebugInfo();
-            
-            // Add iOS-specific info
-            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                const infoDiv = document.createElement('div');
-                infoDiv.className = 'info';
-                infoDiv.innerHTML = '<strong>📱 iOS Detected:</strong> iOS Safari uses DeviceMotion/DeviceOrientation APIs instead of modern sensor APIs. When you click "Enable", iOS will ask for motion permission. You must tap "Allow" for the sensor to work. If it doesn\'t work, check iOS Settings → Safari → Motion & Orientation Access.';
-                
-                document.getElementById('accelerometer').insertBefore(infoDiv, document.getElementById('accel-debug'));
-                document.getElementById('gyroscope').insertBefore(infoDiv.cloneNode(true), document.getElementById('gyro-debug'));
-            }
-            
-            // Add desktop demo mode
-            if (!/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                const demoDiv = document.createElement('div');
-                demoDiv.className = 'warning';
-                demoDiv.innerHTML = '<strong>🖥️ Desktop Detected:</strong> You\'re testing on desktop. Sensor APIs may not provide real data. <button onclick="startDemoMode()" style="margin-left: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Start Demo Mode</button>';
-                
-                document.getElementById('accelerometer').insertBefore(demoDiv, document.getElementById('accel-debug'));
-                document.getElementById('gyroscope').insertBefore(demoDiv.cloneNode(true), document.getElementById('gyro-debug'));
-            }
-
-            // Add educational tips containers
-            addEducationalTips();
-            
-            // Initialize chemistry lab
-            initChemistryLab();
-        });
     </script>
 </body>
 </html>
