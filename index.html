@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketLab - Your Smartphone Science Lab</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav button {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav button:hover, .nav button.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 500px;
+        }
+
+        .sensor-card {
+            text-align: center;
+            display: none;
+        }
+
+        .sensor-card.active {
+            display: block;
+        }
+
+        .sensor-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #4a5568;
+        }
+
+        .sensor-description {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .data-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .data-item {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .data-label {
+            font-size: 0.9rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .data-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .data-unit {
+            font-size: 1rem;
+            color: #718096;
+            margin-left: 5px;
+        }
+
+        .sparkline-container {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .sparkline-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100px;
+            border-radius: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .debug-info {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #4a5568;
+            word-break: break-all;
+        }
+
+        .warning {
+            background: #fef5e7;
+            border: 2px solid #f6ad55;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #c05621;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border: 2px solid #63b3ed;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #2c5282;
+        }
+
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .home-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .home-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .home-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .home-card p {
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav {
+                gap: 10px;
+            }
+            
+            .nav button {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .data-display {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+
+        @keyframes pebbleDrop {
+            0% {
+                transform: translateY(-50px) scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bubbleRise {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        @keyframes reactionGlow {
+            0% {
+                box-shadow: 0 0 5px currentColor;
+            }
+            50% {
+                box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+            }
+            100% {
+                box-shadow: 0 0 5px currentColor;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 PocketLab</h1>
+            <p>Transform your smartphone into a mini science lab</p>
+        </div>
+
+        <div class="nav">
+            <button onclick="showSection('home', event)" class="active">🏠 Home</button>
+            <button onclick="showSection('accelerometer', event)">📱 Accelerometer</button>
+            <button onclick="showSection('gyroscope', event)">🔄 Gyroscope</button>
+                            <button onclick="showSection('sound', event)">🔊 Sound Level</button>
+                <button onclick="showSection('chemistry', event)">🧪 Chemistry</button>
+
+        </div>
+
+        <div class="content">
+
+            <div id="home" class="sensor-card active">
+                <h2 class="sensor-title">Welcome to PocketLab</h2>
+                <p class="sensor-description">
+                    Your smartphone is packed with sensors! Use PocketLab to explore real-time data from your device's accelerometer, gyroscope, and microphone. Learn physics concepts through hands-on experimentation.
+                </p>
+
+                <div class="sparkline-container" style="margin-bottom: 20px;">
+                    <div class="sparkline-title">📱 Use PocketLab Offline & Add to Home Screen</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 15px;">🔄 Offline Functionality</h4>
+                            <p style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">PocketLab works completely offline! Visit once while connected, then use it anywhere without internet.</p>
+                            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-size: 0.9rem;">
+                                <strong>How it works:</strong><br>
+                                • First visit caches the app<br>
+                                • Works offline after initial load<br>
+                                • Automatic updates when online
+                            </div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 15px;">📲 Add to Home Screen</h4>
+                            <p style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px;">Get an app-like experience by adding PocketLab to your home screen.</p>
+                            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-size: 0.9rem;">
+                                <strong>How to add:</strong><br>
+                                <strong>iOS Safari:</strong> Tap Share → Add to Home Screen<br>
+                                <strong>Android Chrome:</strong> Tap Menu → Add to Home Screen<br>
+                                <strong>Desktop:</strong> Install prompt will appear
+                            </div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 15px;">💡 Benefits</h4>
+                            <ul style="font-size: 0.95rem; line-height: 1.6; margin: 0; padding-left: 20px;">
+                                <li>Use anywhere without WiFi</li>
+                                <li>Faster loading from cache</li>
+                                <li>App-like experience</li>
+                                <li>Data persists across sessions</li>
+                                <li>Automatic updates</li>
+                                <li>Works on all devices</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">🎓 Learning Objectives</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 15px;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 10px;">📱 Motion & Forces</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li>Understand acceleration and gravity</li>
+                                <li>Measure forces in 3D space</li>
+                                <li>Learn about vector mathematics</li>
+                                <li>Explore Newton's laws of motion</li>
+                            </ul>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 10px;">🔄 Rotation & Angular Motion</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li>Measure angular velocity</li>
+                                <li>Understand 3D orientation</li>
+                                <li>Learn about rotational dynamics</li>
+                                <li>Practice precision and control</li>
+                            </ul>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 15px;">
+                            <h4 style="margin-bottom: 10px;">🔊 Waves & Sound</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li>Understand sound waves and frequency</li>
+                                <li>Learn about decibel scale</li>
+                                <li>Explore wave properties</li>
+                                <li>Practice safe listening habits</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="home-grid">
+                    <a href="#" onclick="showSection('accelerometer', event)" class="home-card">
+                        <h3>📱 Accelerometer</h3>
+                        <p>Measure motion and orientation in 3D space</p>
+                    </a>
+                    <a href="#" onclick="showSection('gyroscope', event)" class="home-card">
+                        <h3>🔄 Gyroscope</h3>
+                        <p>Track rotation and angular velocity</p>
+                    </a>
+                    <a href="#" onclick="showSection('sound', event)" class="home-card">
+                        <h3>🔊 Sound Level</h3>
+                        <p>Monitor ambient noise levels</p>
+                    </a>
+                    <a href="#" onclick="showSection('chemistry', event)" class="home-card">
+                        <h3>🧪 Chemistry Lab</h3>
+                        <p>Interactive chemistry experiments</p>
+                    </a>
+
+                </div>
+            </div>
+
+
+            <div id="accelerometer" class="sensor-card">
+                <h2 class="sensor-title">📱 Accelerometer</h2>
+                <p class="sensor-description">
+                    Measure acceleration in X, Y, and Z axes. Perfect for motion detection, orientation sensing, and physics experiments.
+                </p>
+                
+                <div class="info">
+                    <strong>📊 Understanding the Values:</strong><br>
+                    • <strong>X-axis</strong>: Left/Right tilt (roll) - changes when you tilt phone sideways<br>
+                    • <strong>Y-axis</strong>: Forward/Backward tilt (pitch) - changes when you tilt phone forward/back<br>
+                    • <strong>Z-axis</strong>: Up/Down + gravity (~9.8 m/s²) - changes with vertical movement<br>
+                    • <strong>Magnitude</strong>: Total acceleration combining all three axes<br><br>
+                    <strong>💡 Try this:</strong> Hold phone flat, then tilt it in different directions and watch the values change!
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">🧪 Educational Experiments</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div style="background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 10px; padding: 15px;">
+                            <h4 style="color: #0c4a6e; margin-bottom: 10px;">🎯 Gravity Measurement</h4>
+                            <p style="font-size: 0.9rem; color: #0369a1;">Hold phone still and flat. Z-axis should read ~9.8 m/s² (Earth's gravity). Try in different orientations!</p>
+                        </div>
+                        <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 10px; padding: 15px;">
+                            <h4 style="color: #92400e; margin-bottom: 10px;">📐 Angle Measurement</h4>
+                            <p style="font-size: 0.9rem; color: #d97706;">Tilt phone to measure angles. Use X/Y values to calculate tilt angle: angle = arctan(√(x²+y²)/z)</p>
+                        </div>
+                        <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 15px;">
+                            <h4 style="color: #166534; margin-bottom: 10px;">⚡ Motion Detection</h4>
+                            <p style="font-size: 0.9rem; color: #16a34a;">Watch magnitude change during movement. Higher values = more acceleration. Try walking, running, jumping!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="debug-info" id="accel-debug"></div>
+
+                <div class="data-display">
+                    <div class="data-item">
+                        <div class="data-label">X Axis</div>
+                        <div class="data-value" id="accel-x">--</div>
+                        <span class="data-unit">m/s²</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Y Axis</div>
+                        <div class="data-value" id="accel-y">--</div>
+                        <span class="data-unit">m/s²</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Z Axis</div>
+                        <div class="data-value" id="accel-z">--</div>
+                        <span class="data-unit">m/s²</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Magnitude</div>
+                        <div class="data-value" id="accel-magnitude">--</div>
+                        <span class="data-unit">m/s²</span>
+                    </div>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">Real-time Motion</div>
+                    <canvas id="accel-sparkline"></canvas>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="accel-enable" onclick="enableAccelerometer()">Enable Sensor</button>
+                    <button class="btn btn-secondary" id="accel-record" onclick="toggleRecording('accel')" disabled>Start Recording</button>
+                    <button class="btn btn-secondary" id="accel-export" onclick="exportData('accel')" disabled>Export CSV</button>
+                </div>
+            </div>
+
+
+            <div id="gyroscope" class="sensor-card">
+                <h2 class="sensor-title">🔄 Gyroscope</h2>
+                <p class="sensor-description">
+                    Track rotation around X, Y, and Z axes. Great for measuring angular velocity and rotational motion.
+                </p>
+
+                <div class="info">
+                    <strong>🔄 Understanding Gyroscope Data:</strong><br>
+                    • <strong>X Rotation</strong>: Roll (left/right rotation around front-back axis)<br>
+                    • <strong>Y Rotation</strong>: Pitch (forward/backward rotation around left-right axis)<br>
+                    • <strong>Z Rotation</strong>: Yaw (left/right rotation around up-down axis)<br>
+                    • <strong>Units</strong>: Degrees per second (°/s) - how fast you're rotating<br><br>
+                    <strong>🎓 Physics Concept:</strong> Angular velocity measures how fast an object rotates around an axis.
+                </div>
+
+                <div class="debug-info" id="gyro-debug"></div>
+
+                <div class="data-display">
+                    <div class="data-item">
+                        <div class="data-label">X Rotation</div>
+                        <div class="data-value" id="gyro-x">--</div>
+                        <span class="data-unit">°/s</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Y Rotation</div>
+                        <div class="data-value" id="gyro-y">--</div>
+                        <span class="data-unit">°/s</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Z Rotation</div>
+                        <div class="data-value" id="gyro-z">--</div>
+                        <span class="data-unit">°/s</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Magnitude</div>
+                        <div class="data-value" id="gyro-magnitude">--</div>
+                        <span class="data-unit">°/s</span>
+                    </div>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">Real-time Rotation</div>
+                    <canvas id="gyro-sparkline"></canvas>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">📱 Level Indicator</div>
+                    <div id="level-indicator" style="text-align: center; padding: 20px;">
+                        <div id="level-circle" style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto; border: 4px solid #e2e8f0; background: #f7fafc; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; transition: all 0.3s ease;">
+                            📱
+                        </div>
+                        <div id="level-text" style="margin-top: 15px; font-size: 1.1rem; font-weight: 600; color: #4a5568;">
+                            Hold phone flat to level
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="gyro-enable" onclick="enableGyroscope()">Enable Sensor</button>
+                    <button class="btn btn-secondary" id="gyro-record" onclick="toggleRecording('gyro')" disabled>Start Recording</button>
+                    <button class="btn btn-secondary" id="gyro-export" onclick="exportData('gyro')" disabled>Export CSV</button>
+                </div>
+            </div>
+
+
+            <div id="sound" class="sensor-card">
+                <h2 class="sensor-title">🔊 Sound Level</h2>
+                <p class="sensor-description">
+                    Measure ambient sound levels using your device's microphone. Monitor noise levels in your environment.
+                </p>
+
+                <div class="warning">
+                    <strong>⚠️ Safety Notice:</strong> Keep volume levels safe. Prolonged exposure to sounds &gt;85 dB can damage hearing.
+                </div>
+
+                <div class="info">
+                    <strong>🔊 Understanding Sound Data:</strong><br>
+                    • <strong>Sound Level</strong>: Decibels (dB) - logarithmic scale of sound intensity<br>
+                    • <strong>RMS</strong>: Root Mean Square - average amplitude of sound wave<br>
+                    • <strong>Reference Levels</strong>: Whisper (30 dB), Normal speech (60 dB), Traffic (80 dB), Rock concert (110 dB)<br><br>
+                    <strong>🎓 Physics Concept:</strong> Sound is a pressure wave. Decibels use a logarithmic scale because human hearing covers a huge range of intensities.
+                </div>
+
+                <div class="data-display">
+                    <div class="data-item">
+                        <div class="data-label">Sound Level</div>
+                        <div class="data-value" id="sound-level">--</div>
+                        <span class="data-unit">dB</span>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">RMS</div>
+                        <div class="data-value" id="sound-rms">--</div>
+                        <span class="data-unit">V</span>
+                    </div>
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">Real-time Sound</div>
+                    <canvas id="sound-sparkline"></canvas>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="sound-enable" onclick="enableSound()">Enable Microphone</button>
+                    <button class="btn btn-secondary" id="sound-record" onclick="toggleRecording('sound')" disabled>Start Recording</button>
+                    <button class="btn btn-secondary" id="sound-export" onclick="exportData('sound')" disabled>Export CSV</button>
+                </div>
+            </div>
+
+
+            <div id="chemistry" class="sensor-card">
+                <h2 class="sensor-title">🧪 Chemistry Lab</h2>
+                <p class="sensor-description">
+                    Interactive chemistry experiments! Drag elements and liquids into the container to see chemical reactions, and use tools to heat or cool the mixture.
+                </p>
+
+                <div class="info">
+                    <strong>🧪 How to Use:</strong><br>
+                    • Drag elements from the periodic table into the container<br>
+                    • Add liquids from the liquid shelf<br>
+                    • Use the matchstick to heat or ice to cool<br>
+                    • Watch for color changes, bubbles, and reactions!<br><br>
+                    <strong>🎓 Learning:</strong> Explore real chemical reactions and learn about elements, compounds, and physical changes.
+                </div>
+
+                <div class="sparkline-container">
+                    <div class="sparkline-title">🧪 Sample Reactions to Try</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%); color: white; padding: 15px; border-radius: 10px;">
+                            <h4 style="margin-bottom: 10px;">💥 Explosive Reactions</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li><strong>Sodium + Water</strong> - Classic explosive reaction</li>
+                                <li><strong>Potassium + Water</strong> - Even more violent!</li>
+                                <li><strong>Sodium + Acid</strong> - Violent acid reaction</li>
+                                <li><strong>Potassium + Acid</strong> - Extremely dangerous</li>
+                            </ul>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%); color: white; padding: 15px; border-radius: 10px;">
+                            <h4 style="margin-bottom: 10px;">🫧 Gas Formation</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li><strong>Iron + Acid</strong> - Hydrogen gas bubbles</li>
+                                <li><strong>Copper + Acid</strong> - Slow gas formation</li>
+                                <li><strong>Calcium + Water</strong> - Hydrogen gas</li>
+                                <li><strong>Magnesium + Acid</strong> - Rapid gas production</li>
+                            </ul>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #45b7d1 0%, #96c93d 100%); color: white; padding: 15px; border-radius: 10px;">
+                            <h4 style="margin-bottom: 10px;">🔥 Combustion Reactions</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li><strong>Hydrogen + Oxygen</strong> (Heat to 100°C+)</li>
+                                <li><strong>Carbon + Oxygen</strong> (Heat to 200°C+)</li>
+                                <li><strong>Alcohol + Oxygen</strong> (Heat to 200°C+)</li>
+                                <li><strong>Magnesium + Oxygen</strong> (Heat to 400°C+)</li>
+                            </ul>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 15px; border-radius: 10px;">
+                            <h4 style="margin-bottom: 10px;">🧪 Acid-Base Chemistry</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li><strong>Acid + Base</strong> - Neutralization reaction</li>
+                                <li><strong>Alcohol + Acid</strong> (Heat to 80°C+) - Esterification</li>
+                                <li><strong>Water + Acid</strong> (Heat to 50°C+) - Dilution</li>
+                                <li><strong>Water + Base</strong> (Heat to 50°C+) - Dilution</li>
+                            </ul>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%); color: white; padding: 15px; border-radius: 10px;">
+                            <h4 style="margin-bottom: 10px;">✨ Alloy Formation</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li><strong>Sodium + Potassium</strong> (Heat to 100°C+)</li>
+                                <li><strong>Iron + Copper</strong> (Heat to 500°C+) - Bronze</li>
+                                <li><strong>Silver + Gold</strong> (Heat to 600°C+) - Electrum</li>
+                                <li><strong>Sodium + Chlorine</strong> (Heat to 50°C+) - Salt</li>
+                            </ul>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px;">
+                            <h4 style="margin-bottom: 10px;">💧 Liquid Reactions</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">
+                                <li><strong>Water + Alcohol</strong> (Heat to 30°C+) - Miscibility</li>
+                                <li><strong>Water + Chlorine</strong> (Heat to 20°C+) - Acid formation</li>
+                                <li><strong>Water + Sulfur</strong> (Heat to 30°C+) - Weak acid</li>
+                                <li><strong>Water + Phosphorus</strong> (Heat to 40°C+) - Phosphoric acid</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 30px;">
+
+                    <div style="background: #f7fafc; border-radius: 15px; padding: 20px; border: 2px solid #e2e8f0;">
+                        <h3 style="margin-bottom: 15px; color: #4a5568;">📋 Elements & Tools</h3>
+                        
+
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 10px; color: #2d3748;">⚛️ Elements</h4>
+                            <div id="elements-shelf" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+    
+                            </div>
+                        </div>
+
+
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 10px; color: #2d3748;">💧 Liquids</h4>
+                            <div id="liquids-shelf" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+    
+                            </div>
+                        </div>
+
+
+                        <div>
+                            <h4 style="margin-bottom: 10px; color: #2d3748;">🛠️ Tools</h4>
+                            <div id="tools-shelf" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+    
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div style="background: #f7fafc; border-radius: 15px; padding: 20px; border: 2px solid #e2e8f0;">
+                        <h3 style="margin-bottom: 15px; color: #4a5568;">🧪 Reaction Container</h3>
+                        
+
+                        <div id="chemistry-container" style="width: 100%; height: 250px; background: linear-gradient(to bottom, #e6f3ff 0%, #ffffff 100%); border: 3px solid #4299e1; border-radius: 15px; position: relative; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #718096; overflow: hidden;">
+
+                            <div id="flask-shape" style="position: absolute; width: 80%; height: 80%; background: rgba(255,255,255,0.3); border: 3px solid #4299e1; border-radius: 50% 50% 20% 20%; bottom: 10%; left: 10%; display: flex; align-items: center; justify-content: center;">
+
+                                <div id="liquid-layer" style="position: absolute; bottom: 0; left: 0; right: 0; height: 0%; background: linear-gradient(to top, rgba(135, 206, 235, 0.6) 0%, rgba(135, 206, 235, 0.3) 100%); border-radius: 0 0 17% 17%; transition: height 0.5s ease;"></div>
+                                
+
+                                <div id="element-pebbles" style="position: absolute; bottom: 0; left: 0; right: 0; height: 100%; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; padding: 10px; pointer-events: none;"></div>
+                                
+
+                                <div id="bubbles-container" style="position: absolute; bottom: 0; left: 0; right: 0; height: 100%; pointer-events: none;"></div>
+                                
+
+                                <div id="container-content" style="position: relative; z-index: 10; text-align: center; color: #2d3748; font-weight: bold;">Drag elements and liquids here!</div>
+                            </div>
+                        </div>
+
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div style="background: white; padding: 15px; border-radius: 10px; border: 2px solid #e2e8f0;">
+                                <div style="font-size: 0.9rem; color: #718096; margin-bottom: 5px;">🌡️ Temperature</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #2d3748;" id="temperature">25°C</div>
+                            </div>
+                            <div style="background: white; padding: 15px; border-radius: 10px; border: 2px solid #e2e8f0;">
+                                <div style="font-size: 0.9rem; color: #718096; margin-bottom: 5px;">📊 Status</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #2d3748;" id="reaction-status">Ready</div>
+                            </div>
+                        </div>
+
+
+                        <div style="background: white; padding: 15px; border-radius: 10px; border: 2px solid #e2e8f0; max-height: 150px; overflow-y: auto;">
+                            <div style="font-size: 0.9rem; color: #718096; margin-bottom: 10px;">📝 Reaction Log</div>
+                            <div id="reaction-log" style="font-size: 0.9rem; color: #2d3748;">
+                                Welcome to the chemistry lab! Start by adding elements or liquids.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="resetChemistryLab()">🧹 Reset Lab</button>
+                    <button class="btn btn-secondary" onclick="exportChemistryData()">📊 Export Data</button>
+                </div>
+
+                <div class="sparkline-container" style="margin-top: 20px;">
+                    <div class="sparkline-title">🚀 Quick Start - Try These First!</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-top: 15px;">
+                        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-weight: bold; color: #856404; margin-bottom: 5px;">1. Classic Explosion</div>
+                            <div style="font-size: 0.9rem; color: #856404;">Add Sodium + Water</div>
+                        </div>
+                        <div style="background: #d1ecf1; border: 2px solid #17a2b8; border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-weight: bold; color: #0c5460; margin-bottom: 5px;">2. Gas Bubbles</div>
+                            <div style="font-size: 0.9rem; color: #0c5460;">Add Iron + Acid</div>
+                        </div>
+                        <div style="background: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-weight: bold; color: #155724; margin-bottom: 5px;">3. Neutralization</div>
+                            <div style="font-size: 0.9rem; color: #155724;">Add Acid + Base</div>
+                        </div>
+                        <div style="background: #f8d7da; border: 2px solid #dc3545; border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-weight: bold; color: #721c24; margin-bottom: 5px;">4. Combustion</div>
+                            <div style="font-size: 0.9rem; color: #721c24;">Add H + O, then Heat</div>
+                        </div>
+                        <div style="background: #e2e3e5; border: 2px solid #6c757d; border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-weight: bold; color: #383d41; margin-bottom: 5px;">5. Alloy Formation</div>
+                            <div style="font-size: 0.9rem; color: #383d41;">Add Na + Cl, then Heat</div>
+                        </div>
+                        <div style="background: #fff0f6; border: 2px solid #e91e63; border-radius: 8px; padding: 12px; text-align: center;">
+                            <div style="font-weight: bold; color: #ad1457; margin-bottom: 5px;">6. Alcohol Chemistry</div>
+                            <div style="font-size: 0.9rem; color: #ad1457;">Add Alcohol + Na</div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentSection = 'home';
+        let sensors = {
+            accel: { enabled: false, data: [], recording: false },
+            gyro: { enabled: false, data: [], recording: false },
+            sound: { enabled: false, data: [], recording: false }
+        };
+
+        // Sparkline data
+        let sparklines = {
+            accel: { values: [], maxPoints: 100 },
+            gyro: { values: [], maxPoints: 100 },
+            sound: { values: [], maxPoints: 100 }
+        };
+
+        // Smoothing data for stable display
+        let smoothing = {
+            accel: { x: 0, y: 0, z: 0, magnitude: 0 },
+            gyro: { x: 0, y: 0, z: 0, magnitude: 0 },
+            sound: { level: 0, rms: 0 }
+        };
+
+        // Update smoothing values with low-pass filter
+        function smoothValue(current, target, factor = 0.1) {
+            return current + (target - current) * factor;
+        }
+
+        // Demo mode for desktop testing
+        let demoMode = false;
+        let demoInterval;
+
+        // Educational tips
+        const scienceTips = {
+            accel: [
+                "💡 Tip: Earth's gravity is ~9.8 m/s². Hold your phone flat to see this!",
+                "🎯 Challenge: Try to keep the magnitude exactly at 9.8 m/s²",
+                "📐 Physics: Acceleration = Force ÷ Mass (Newton's Second Law)",
+                "🌍 Fun Fact: Gravity varies slightly around the world!"
+            ],
+            gyro: [
+                "🎯 Tip: Keep your phone perfectly level to see the circle turn green!",
+                "📐 Physics: Angular velocity = change in angle ÷ time",
+                "🔄 Challenge: Rotate exactly 90° and measure the time",
+                "🌍 Fun Fact: Gyroscopes help keep satellites oriented in space!"
+            ],
+            sound: [
+                "🔊 Tip: Whisper is ~30 dB, normal speech ~60 dB, traffic ~80 dB",
+                "🎵 Physics: Sound is a pressure wave traveling through air",
+                "📊 Challenge: Measure the quietest and loudest sounds you can find",
+                "🌍 Fun Fact: Bats use sound waves to navigate in the dark!"
+            ]
+        };
+
+        // Navigation
+        function showSection(section, event) {
+            document.querySelectorAll('.sensor-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(section).classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            currentSection = section;
+            updateDebugInfo();
+        }
+
+        // Debug info
+        function updateDebugInfo() {
+            const checks = [];
+            checks.push(`HTTPS: ${window.location.protocol === 'https:'}`);
+            checks.push(`Accelerometer API: ${'Accelerometer' in window}`);
+            checks.push(`Gyroscope API: ${'Gyroscope' in window}`);
+            checks.push(`DeviceMotion: ${'DeviceMotionEvent' in window}`);
+            checks.push(`DeviceOrientation: ${'DeviceOrientationEvent' in window}`);
+            checks.push(`MediaDevices: ${'mediaDevices' in navigator}`);
+
+            checks.push(`Permissions API: ${'permissions' in navigator}`);
+            checks.push(`Mobile: ${/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)}`);
+            checks.push(`iOS: ${/iPhone|iPad|iPod/i.test(navigator.userAgent)}`);
+            
+            const debugElement = document.getElementById(currentSection + '-debug');
+            if (debugElement) {
+                debugElement.textContent = checks.join(' | ');
+            }
+        }
+
+        // Sparkline drawing
+        function drawSparkline(canvasId, values) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            if (values.length < 2) return;
+            
+            const max = Math.max(...values);
+            const min = Math.min(...values);
+            const range = max - min || 1;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            values.forEach((value, index) => {
+                const x = (index / (values.length - 1)) * canvas.width;
+                const y = canvas.height - ((value - min) / range) * canvas.height;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+        }
+
+        // Accelerometer
+        function enableAccelerometer() {
+            console.log('Enabling accelerometer...');
+            
+            if ('Accelerometer' in window) {
+                try {
+                    const sensor = new Accelerometer({ frequency: 10 });
+                    
+                    sensor.addEventListener('reading', () => {
+                        const data = {
+                            x: sensor.x,
+                            y: sensor.y,
+                            z: sensor.z,
+                            magnitude: Math.sqrt(sensor.x**2 + sensor.y**2 + sensor.z**2),
+                            timestamp: Date.now()
+                        };
+                        
+                        updateAccelerometerData(data);
+                    });
+                    
+                    sensor.addEventListener('error', (error) => {
+                        console.warn('Accelerometer API failed, falling back to devicemotion:', error);
+                        startDeviceMotionFallback();
+                    });
+                    
+                    sensor.start();
+                    sensors.accel.enabled = true;
+                    document.getElementById('accel-enable').disabled = true;
+                    document.getElementById('accel-record').disabled = false;
+                    showEducationalTip('accel');
+                    
+                } catch (error) {
+                    console.warn('Accelerometer API not available, using devicemotion fallback:', error);
+                    startDeviceMotionFallback();
+                }
+            } else {
+                startDeviceMotionFallback();
+            }
+        }
+
+        function startDeviceMotionFallback() {
+            console.log('Starting devicemotion fallback...');
+            
+            if ('DeviceMotionEvent' in window) {
+                // Check if iOS permission is required
+                if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                    console.log('iOS detected - requesting motion permission...');
+                    DeviceMotionEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                console.log('Motion permission granted!');
+                                attachDeviceMotionListener();
+                            } else {
+                                alert('Motion permission denied. Please enable in Settings > Safari > Motion & Orientation Access');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error requesting motion permission:', error);
+                            alert('Could not request motion permission: ' + error.message);
+                        });
+                } else {
+                    // Not iOS or older iOS version - no permission needed
+                    attachDeviceMotionListener();
+                }
+            } else {
+                alert('Accelerometer not supported on this device');
+            }
+        }
+
+        function attachDeviceMotionListener() {
+            window.addEventListener('devicemotion', (event) => {
+                const acceleration = event.accelerationIncludingGravity;
+                if (acceleration) {
+                    const data = {
+                        x: acceleration.x,
+                        y: acceleration.y,
+                        z: acceleration.z,
+                        magnitude: Math.sqrt(acceleration.x**2 + acceleration.y**2 + acceleration.z**2),
+                        timestamp: Date.now()
+                    };
+                    
+                    updateAccelerometerData(data);
+                }
+            });
+            
+            sensors.accel.enabled = true;
+            document.getElementById('accel-enable').disabled = true;
+            document.getElementById('accel-record').disabled = false;
+        }
+
+        function updateAccelerometerData(data) {
+            // Apply smoothing to reduce jitter
+            smoothing.accel.x = smoothValue(smoothing.accel.x, data.x || 0, 0.15);
+            smoothing.accel.y = smoothValue(smoothing.accel.y, data.y || 0, 0.15);
+            smoothing.accel.z = smoothValue(smoothing.accel.z, data.z || 0, 0.15);
+            smoothing.accel.magnitude = smoothValue(smoothing.accel.magnitude, data.magnitude || 0, 0.15);
+            
+            // Display rounded values (1 decimal place for better readability)
+            document.getElementById('accel-x').textContent = Math.round(smoothing.accel.x * 10) / 10;
+            document.getElementById('accel-y').textContent = Math.round(smoothing.accel.y * 10) / 10;
+            document.getElementById('accel-z').textContent = Math.round(smoothing.accel.z * 10) / 10;
+            document.getElementById('accel-magnitude').textContent = Math.round(smoothing.accel.magnitude * 10) / 10;
+            
+            sparklines.accel.values.push(smoothing.accel.magnitude);
+            if (sparklines.accel.values.length > sparklines.accel.maxPoints) {
+                sparklines.accel.values.shift();
+            }
+            drawSparkline('accel-sparkline', sparklines.accel.values);
+            
+            if (sensors.accel.recording) {
+                sensors.accel.data.push(data);
+            }
+        }
+
+        // Gyroscope
+        function enableGyroscope() {
+            console.log('Enabling gyroscope...');
+            
+            if ('Gyroscope' in window) {
+                try {
+                    const sensor = new Gyroscope({ frequency: 10 });
+                    
+                    sensor.addEventListener('reading', () => {
+                        const data = {
+                            x: sensor.x,
+                            y: sensor.y,
+                            z: sensor.z,
+                            magnitude: Math.sqrt(sensor.x**2 + sensor.y**2 + sensor.z**2),
+                            timestamp: Date.now()
+                        };
+                        
+                        updateGyroscopeData(data);
+                    });
+                    
+                    sensor.addEventListener('error', (error) => {
+                        console.warn('Gyroscope API failed, falling back to deviceorientation:', error);
+                        startDeviceOrientationFallback();
+                    });
+                    
+                    sensor.start();
+                    sensors.gyro.enabled = true;
+                    document.getElementById('gyro-enable').disabled = true;
+                    document.getElementById('gyro-record').disabled = false;
+                    
+                } catch (error) {
+                    console.warn('Gyroscope API not available, using deviceorientation fallback:', error);
+                    startDeviceOrientationFallback();
+                }
+            } else {
+                startDeviceOrientationFallback();
+            }
+        }
+
+        function startDeviceOrientationFallback() {
+            console.log('Starting deviceorientation fallback...');
+            
+            if ('DeviceOrientationEvent' in window) {
+                // Check if iOS permission is required
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    console.log('iOS detected - requesting orientation permission...');
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                console.log('Orientation permission granted!');
+                                attachDeviceOrientationListener();
+                            } else {
+                                alert('Orientation permission denied. Please enable in Settings > Safari > Motion & Orientation Access');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error requesting orientation permission:', error);
+                            alert('Could not request orientation permission: ' + error.message);
+                        });
+                } else {
+                    // Not iOS or older iOS version - no permission needed
+                    attachDeviceOrientationListener();
+                }
+            } else {
+                alert('Gyroscope not supported on this device');
+            }
+        }
+
+        function attachDeviceOrientationListener() {
+            window.addEventListener('deviceorientation', (event) => {
+                const data = {
+                    x: event.alpha,
+                    y: event.beta,
+                    z: event.gamma,
+                    magnitude: Math.sqrt((event.alpha || 0)**2 + (event.beta || 0)**2 + (event.gamma || 0)**2),
+                    timestamp: Date.now()
+                };
+                
+                updateGyroscopeData(data);
+            });
+            
+            sensors.gyro.enabled = true;
+            document.getElementById('gyro-enable').disabled = true;
+            document.getElementById('gyro-record').disabled = false;
+        }
+
+        function updateGyroscopeData(data) {
+            // Apply smoothing to reduce jitter
+            smoothing.gyro.x = smoothValue(smoothing.gyro.x, data.x || 0, 0.15);
+            smoothing.gyro.y = smoothValue(smoothing.gyro.y, data.y || 0, 0.15);
+            smoothing.gyro.z = smoothValue(smoothing.gyro.z, data.z || 0, 0.15);
+            smoothing.gyro.magnitude = smoothValue(smoothing.gyro.magnitude, data.magnitude || 0, 0.15);
+            
+            // Display rounded values (1 decimal place for better readability)
+            document.getElementById('gyro-x').textContent = Math.round(smoothing.gyro.x * 10) / 10;
+            document.getElementById('gyro-y').textContent = Math.round(smoothing.gyro.y * 10) / 10;
+            document.getElementById('gyro-z').textContent = Math.round(smoothing.gyro.z * 10) / 10;
+            document.getElementById('gyro-magnitude').textContent = Math.round(smoothing.gyro.magnitude * 10) / 10;
+            
+            // Update level indicator
+            updateLevelIndicator(smoothing.gyro.x, smoothing.gyro.y);
+            
+            sparklines.gyro.values.push(smoothing.gyro.magnitude);
+            if (sparklines.gyro.values.length > sparklines.gyro.maxPoints) {
+                sparklines.gyro.values.shift();
+            }
+            drawSparkline('gyro-sparkline', sparklines.gyro.values);
+            
+            if (sensors.gyro.recording) {
+                sensors.gyro.data.push(data);
+            }
+        }
+
+        function updateLevelIndicator(x, y) {
+            const levelCircle = document.getElementById('level-circle');
+            const levelText = document.getElementById('level-text');
+            
+            if (!levelCircle || !levelText) return;
+            
+            // Calculate how level the phone is (0 = perfectly level, 1 = very tilted)
+            const tiltX = Math.abs(x) / 90; // Normalize to 0-1
+            const tiltY = Math.abs(y) / 90; // Normalize to 0-1
+            const maxTilt = Math.max(tiltX, tiltY);
+            const levelness = 1 - maxTilt; // 1 = perfectly level, 0 = very tilted
+            
+            // Determine color based on levelness
+            let color, text, emoji;
+            if (levelness > 0.95) {
+                // Perfectly level - green
+                color = '#10b981';
+                text = 'Perfectly Level!';
+                emoji = '🎯';
+            } else if (levelness > 0.8) {
+                // Very level - light green
+                color = '#34d399';
+                text = 'Very Level';
+                emoji = '✅';
+            } else if (levelness > 0.6) {
+                // Somewhat level - yellow
+                color = '#f59e0b';
+                text = 'Getting There';
+                emoji = '📱';
+            } else if (levelness > 0.3) {
+                // Not very level - orange
+                color = '#f97316';
+                text = 'Not Level';
+                emoji = '📱';
+            } else {
+                // Very tilted - red
+                color = '#ef4444';
+                text = 'Very Tilted';
+                emoji = '📱';
+            }
+            
+            // Update the display
+            levelCircle.style.borderColor = color;
+            levelCircle.style.backgroundColor = color + '20'; // 20% opacity
+            levelCircle.textContent = emoji;
+            levelText.textContent = text;
+            levelText.style.color = color;
+        }
+
+        // Sound
+        let audioContext, analyser, microphone;
+
+        function enableSound() {
+            console.log('Enabling sound sensor...');
+            
+            if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioContext.createAnalyser();
+                        microphone = audioContext.createMediaStreamSource(stream);
+                        
+                        analyser.fftSize = 256;
+                        microphone.connect(analyser);
+                        
+                        sensors.sound.enabled = true;
+                        document.getElementById('sound-enable').disabled = true;
+                        document.getElementById('sound-record').disabled = false;
+                        
+                        startSoundAnalysis();
+                    })
+                    .catch(error => {
+                        console.error('Error accessing microphone:', error);
+                        alert('Could not access microphone. Please check permissions.');
+                    });
+            } else {
+                alert('Microphone access not supported on this device');
+            }
+        }
+
+        function startSoundAnalysis() {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            
+            function updateSound() {
+                if (!sensors.sound.enabled) return;
+                
+                analyser.getByteTimeDomainData(dataArray);
+                
+                // Calculate RMS
+                let sum = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    const value = (dataArray[i] - 128) / 128;
+                    sum += value * value;
+                }
+                const rms = Math.sqrt(sum / bufferLength);
+                
+                // Convert to dB (approximate)
+                const db = 20 * Math.log10(rms) + 90;
+                
+                const data = {
+                    level: Math.max(0, db),
+                    rms: rms,
+                    timestamp: Date.now()
+                };
+                
+                updateSoundData(data);
+                requestAnimationFrame(updateSound);
+            }
+            
+            updateSound();
+        }
+
+        function updateSoundData(data) {
+            // Apply smoothing to reduce jitter
+            smoothing.sound.level = smoothValue(smoothing.sound.level, data.level || 0, 0.2);
+            smoothing.sound.rms = smoothValue(smoothing.sound.rms, data.rms || 0, 0.2);
+            
+            // Display rounded values
+            document.getElementById('sound-level').textContent = Math.round(smoothing.sound.level);
+            document.getElementById('sound-rms').textContent = smoothing.sound.rms.toFixed(3);
+            
+            sparklines.sound.values.push(smoothing.sound.level);
+            if (sparklines.sound.values.length > sparklines.sound.maxPoints) {
+                sparklines.sound.values.shift();
+            }
+            drawSparkline('sound-sparkline', sparklines.sound.values);
+            
+            if (sensors.sound.recording) {
+                sensors.sound.data.push(data);
+            }
+        }
+
+
+
+        // Recording and Export
+        function toggleRecording(sensorType) {
+            const sensor = sensors[sensorType];
+            const button = document.getElementById(sensorType + '-record');
+            
+            if (sensor.recording) {
+                sensor.recording = false;
+                button.textContent = 'Start Recording';
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-secondary');
+            } else {
+                sensor.recording = true;
+                sensor.data = [];
+                button.textContent = 'Stop Recording';
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-danger');
+            }
+            
+            document.getElementById(sensorType + '-export').disabled = sensor.data.length === 0;
+        }
+
+        function exportData(sensorType) {
+            const sensor = sensors[sensorType];
+            if (sensor.data.length === 0) return;
+            
+            let csv = 'Timestamp,';
+            const firstRow = sensor.data[0];
+            
+            // Add headers
+            Object.keys(firstRow).forEach(key => {
+                if (key !== 'timestamp') {
+                    csv += key.charAt(0).toUpperCase() + key.slice(1) + ',';
+                }
+            });
+            csv = csv.slice(0, -1) + '\n';
+            
+            // Add data
+            sensor.data.forEach(row => {
+                csv += new Date(row.timestamp).toISOString() + ',';
+                Object.keys(row).forEach(key => {
+                    if (key !== 'timestamp') {
+                        csv += row[key] + ',';
+                    }
+                });
+                csv = csv.slice(0, -1) + '\n';
+            });
+            
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${sensorType}_data_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function startDemoMode() {
+            if (demoMode) {
+                stopDemoMode();
+                return;
+            }
+            
+            demoMode = true;
+            console.log('Starting demo mode...');
+            
+            // Simulate accelerometer data
+            let accelData = { x: 0, y: 0, z: 9.8, magnitude: 9.8 };
+            let gyroData = { x: 0, y: 0, z: 0, magnitude: 0 };
+            
+            demoInterval = setInterval(() => {
+                // Simulate motion
+                accelData.x = Math.sin(Date.now() * 0.001) * 2;
+                accelData.y = Math.cos(Date.now() * 0.001) * 2;
+                accelData.z = 9.8 + Math.sin(Date.now() * 0.002) * 1;
+                accelData.magnitude = Math.sqrt(accelData.x**2 + accelData.y**2 + accelData.z**2);
+                
+                gyroData.x = Math.sin(Date.now() * 0.003) * 30;
+                gyroData.y = Math.cos(Date.now() * 0.003) * 30;
+                gyroData.z = Math.sin(Date.now() * 0.001) * 10;
+                gyroData.magnitude = Math.sqrt(gyroData.x**2 + gyroData.y**2 + gyroData.z**2);
+                
+                // Update UI if sensors are enabled
+                if (sensors.accel.enabled) {
+                    updateAccelerometerData({ ...accelData, timestamp: Date.now() });
+                }
+                if (sensors.gyro.enabled) {
+                    updateGyroscopeData({ ...gyroData, timestamp: Date.now() });
+                }
+            }, 100);
+            
+            // Update button text
+            document.querySelectorAll('.warning button').forEach(btn => {
+                btn.textContent = 'Stop Demo Mode';
+                btn.style.background = '#f56565';
+            });
+        }
+
+        function stopDemoMode() {
+            demoMode = false;
+            if (demoInterval) {
+                clearInterval(demoInterval);
+            }
+            
+            // Update button text
+            document.querySelectorAll('.warning button').forEach(btn => {
+                btn.textContent = 'Start Demo Mode';
+                btn.style.background = '#667eea';
+            });
+        }
+
+        // Register Service Worker for offline functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed');
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button after a delay
+            setTimeout(() => {
+                showInstallPrompt();
+            }, 3000);
+        });
+
+        function showInstallPrompt() {
+            const installDiv = document.createElement('div');
+            installDiv.id = 'install-prompt';
+            installDiv.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 25px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                font-size: 0.9rem;
+                max-width: 90%;
+            `;
+            
+            installDiv.innerHTML = `
+                <span>📱 Install PocketLab for offline access</span>
+                <button onclick="installApp()" style="background: white; color: #667eea; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer;">Install</button>
+                <button onclick="dismissInstall()" style="background: transparent; color: white; border: 1px solid white; padding: 8px 16px; border-radius: 20px; cursor: pointer;">Later</button>
+            `;
+            
+            document.body.appendChild(installDiv);
+        }
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    dismissInstall();
+                });
+            }
+        }
+
+        function dismissInstall() {
+            const prompt = document.getElementById('install-prompt');
+            if (prompt) {
+                prompt.remove();
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDebugInfo();
+            
+            // Add iOS-specific info
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'info';
+                infoDiv.innerHTML = '<strong>📱 iOS Detected:</strong> iOS Safari uses DeviceMotion/DeviceOrientation APIs instead of modern sensor APIs. When you click "Enable", iOS will ask for motion permission. You must tap "Allow" for the sensor to work. If it doesn\'t work, check iOS Settings → Safari → Motion & Orientation Access.';
+                
+                document.getElementById('accelerometer').insertBefore(infoDiv, document.getElementById('accel-debug'));
+                document.getElementById('gyroscope').insertBefore(infoDiv.cloneNode(true), document.getElementById('gyro-debug'));
+            }
+            
+            // Add desktop demo mode
+            if (!/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                const demoDiv = document.createElement('div');
+                demoDiv.className = 'warning';
+                demoDiv.innerHTML = '<strong>🖥️ Desktop Detected:</strong> You\'re testing on desktop. Sensor APIs may not provide real data. <button onclick="startDemoMode()" style="margin-left: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Start Demo Mode</button>';
+                
+                document.getElementById('accelerometer').insertBefore(demoDiv, document.getElementById('accel-debug'));
+                document.getElementById('gyroscope').insertBefore(demoDiv.cloneNode(true), document.getElementById('gyro-debug'));
+            }
+
+            // Add educational tips containers
+            addEducationalTips();
+            
+            // Initialize chemistry lab
+            initChemistryLab();
+        });
+
+        function addEducationalTips() {
+            const sections = ['accelerometer', 'gyroscope', 'sound'];
+            sections.forEach(section => {
+                const container = document.getElementById(section);
+                if (container) {
+                    const tipsDiv = document.createElement('div');
+                    tipsDiv.id = section + '-tips';
+                    tipsDiv.className = 'info';
+                    tipsDiv.style.display = 'none';
+                    tipsDiv.innerHTML = '<strong>🎓 Science Tip:</strong> <span id="' + section + '-tip-text"></span>';
+                    container.insertBefore(tipsDiv, container.querySelector('.debug-info'));
+                }
+            });
+        }
+
+        function showEducationalTip(sensorType) {
+            const tipsDiv = document.getElementById(sensorType + '-tips');
+            const tipText = document.getElementById(sensorType + '-tip-text');
+            
+            if (tipsDiv && tipText && scienceTips[sensorType]) {
+                const randomTip = scienceTips[sensorType][Math.floor(Math.random() * scienceTips[sensorType].length)];
+                tipText.textContent = randomTip;
+                tipsDiv.style.display = 'block';
+                
+                // Hide tip after 8 seconds
+                setTimeout(() => {
+                    tipsDiv.style.display = 'none';
+                }, 8000);
+            }
+        }
+
+        // Chemistry Lab Variables
+        let chemistryLab = {
+            temperature: 25,
+            contents: [],
+            reactions: [],
+            isHeating: false,
+            isCooling: false,
+            activeReactions: new Set(), // Track active reactions to prevent duplicates
+            reactionCooldown: {}, // Track cooldowns for reactions
+            completedReactions: new Set() // Track completed reactions for this session
+        };
+
+        // Chemistry data
+        const elements = [
+            { symbol: 'H', name: 'Hydrogen', color: '#ffffff', type: 'gas', reactivity: 'high' },
+            { symbol: 'O', name: 'Oxygen', color: '#ff6b6b', type: 'gas', reactivity: 'high' },
+            { symbol: 'Na', name: 'Sodium', color: '#ffd93d', type: 'metal', reactivity: 'very_high' },
+            { symbol: 'Cl', name: 'Chlorine', color: '#6bcf7f', type: 'gas', reactivity: 'high' },
+            { symbol: 'Fe', name: 'Iron', color: '#8b4513', type: 'metal', reactivity: 'medium' },
+            { symbol: 'Cu', name: 'Copper', color: '#cd7f32', type: 'metal', reactivity: 'low' },
+            { symbol: 'Ag', name: 'Silver', color: '#c0c0c0', type: 'metal', reactivity: 'low' },
+            { symbol: 'Au', name: 'Gold', color: '#ffd700', type: 'metal', reactivity: 'very_low' },
+            { symbol: 'C', name: 'Carbon', color: '#2c3e50', type: 'nonmetal', reactivity: 'low' },
+            { symbol: 'N', name: 'Nitrogen', color: '#3498db', type: 'gas', reactivity: 'low' },
+            { symbol: 'S', name: 'Sulfur', color: '#f39c12', type: 'nonmetal', reactivity: 'medium' },
+            { symbol: 'P', name: 'Phosphorus', color: '#e74c3c', type: 'nonmetal', reactivity: 'high' },
+            { symbol: 'K', name: 'Potassium', color: '#ff69b4', type: 'metal', reactivity: 'very_high' },
+            { symbol: 'Ca', name: 'Calcium', color: '#ffb6c1', type: 'metal', reactivity: 'high' },
+            { symbol: 'Mg', name: 'Magnesium', color: '#dda0dd', type: 'metal', reactivity: 'high' }
+        ];
+
+        const liquids = [
+            { name: 'Water', color: '#87ceeb', formula: 'H₂O', type: 'solvent' },
+            { name: 'Acid', color: '#ff6b6b', formula: 'HCl', type: 'acid' },
+            { name: 'Base', color: '#ffeb3b', formula: 'NaOH', type: 'base' },
+            { name: 'Alcohol', color: '#f0f8ff', formula: 'C₂H₅OH', type: 'organic' }
+        ];
+
+        const tools = [
+            { name: 'Matchstick', icon: '🔥', action: 'heat', description: 'Heat the mixture' },
+            { name: 'Ice', icon: '🧊', action: 'cool', description: 'Cool the mixture' }
+        ];
+
+        // Initialize Chemistry Lab
+        function initChemistryLab() {
+            createElements();
+            createLiquids();
+            createTools();
+            setupDragAndDrop();
+        }
+
+        function createElements() {
+            const shelf = document.getElementById('elements-shelf');
+            elements.forEach(element => {
+                const elementDiv = document.createElement('div');
+                elementDiv.className = 'draggable-element';
+                elementDiv.draggable = true;
+                elementDiv.dataset.type = 'element';
+                elementDiv.dataset.symbol = element.symbol;
+                elementDiv.style.cssText = `
+                    background: ${element.color};
+                    border: 2px solid #333;
+                    border-radius: 8px;
+                    padding: 8px;
+                    text-align: center;
+                    cursor: grab;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                    transition: transform 0.2s;
+                `;
+                elementDiv.innerHTML = `
+                    <div style="font-size: 1.2rem;">${element.symbol}</div>
+                    <div style="font-size: 0.7rem;">${element.name}</div>
+                `;
+                elementDiv.addEventListener('dragstart', handleDragStart);
+                shelf.appendChild(elementDiv);
+            });
+        }
+
+        function createLiquids() {
+            const shelf = document.getElementById('liquids-shelf');
+            liquids.forEach(liquid => {
+                const liquidDiv = document.createElement('div');
+                liquidDiv.className = 'draggable-liquid';
+                liquidDiv.draggable = true;
+                liquidDiv.dataset.type = 'liquid';
+                liquidDiv.dataset.name = liquid.name;
+                liquidDiv.style.cssText = `
+                    background: ${liquid.color};
+                    border: 2px solid #333;
+                    border-radius: 8px;
+                    padding: 12px;
+                    text-align: center;
+                    cursor: grab;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                    transition: transform 0.2s;
+                `;
+                liquidDiv.innerHTML = `
+                    <div style="font-size: 1.2rem;">💧</div>
+                    <div>${liquid.name}</div>
+                `;
+                liquidDiv.addEventListener('dragstart', handleDragStart);
+                shelf.appendChild(liquidDiv);
+            });
+        }
+
+        function createTools() {
+            const shelf = document.getElementById('tools-shelf');
+            tools.forEach(tool => {
+                const toolDiv = document.createElement('div');
+                toolDiv.className = 'draggable-tool';
+                toolDiv.draggable = true;
+                toolDiv.dataset.type = 'tool';
+                toolDiv.dataset.action = tool.action;
+                toolDiv.style.cssText = `
+                    background: #f8f9fa;
+                    border: 2px solid #333;
+                    border-radius: 8px;
+                    padding: 12px;
+                    text-align: center;
+                    cursor: grab;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                    transition: transform 0.2s;
+                `;
+                toolDiv.innerHTML = `
+                    <div style="font-size: 1.5rem;">${tool.icon}</div>
+                    <div>${tool.name}</div>
+                `;
+                toolDiv.addEventListener('dragstart', handleDragStart);
+                shelf.appendChild(toolDiv);
+            });
+        }
+
+        function setupDragAndDrop() {
+            const container = document.getElementById('chemistry-container');
+            
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                container.style.borderColor = '#22c55e';
+                container.style.transform = 'scale(1.02)';
+            });
+
+            container.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                container.style.borderColor = '#4299e1';
+                container.style.transform = 'scale(1)';
+            });
+
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                container.style.borderColor = '#4299e1';
+                container.style.transform = 'scale(1)';
+                
+                const draggedItem = e.dataTransfer.getData('text/plain');
+                const itemData = JSON.parse(draggedItem);
+                
+                addToContainer(itemData);
+            });
+        }
+
+        function handleDragStart(e) {
+            const itemData = {
+                type: e.target.dataset.type,
+                symbol: e.target.dataset.symbol,
+                name: e.target.dataset.name,
+                action: e.target.dataset.action
+            };
+            e.dataTransfer.setData('text/plain', JSON.stringify(itemData));
+        }
+
+        function addToContainer(itemData) {
+            if (itemData.type === 'tool') {
+                useTool(itemData.action);
+            } else {
+                chemistryLab.contents.push(itemData);
+                updateContainerDisplay();
+                updateFlaskVisuals();
+                checkReactions();
+            }
+        }
+
+        function useTool(action) {
+            if (action === 'heat') {
+                chemistryLab.isHeating = true;
+                chemistryLab.temperature += 20;
+                addToLog(`🔥 Heating mixture... Temperature: ${chemistryLab.temperature}°C`);
+                setTimeout(() => {
+                    chemistryLab.isHeating = false;
+                    checkReactions();
+                }, 2000);
+            } else if (action === 'cool') {
+                chemistryLab.isCooling = true;
+                chemistryLab.temperature -= 20;
+                addToLog(`🧊 Cooling mixture... Temperature: ${chemistryLab.temperature}°C`);
+                setTimeout(() => {
+                    chemistryLab.isCooling = false;
+                    checkReactions();
+                }, 2000);
+            }
+            updateTemperatureDisplay();
+        }
+
+        function checkReactions() {
+            const contents = chemistryLab.contents;
+            
+            // Check for specific reactions with cooldown
+            if (hasElement('Na') && hasLiquid('Water') && !isReactionActive('Na+Water') && !chemistryLab.completedReactions.has('Na+Water')) {
+                triggerReaction('Na+Water', 'Sodium + Water', '💥 Explosive reaction! Sodium reacts violently with water, producing hydrogen gas and sodium hydroxide.', '#ff6b6b', 5000);
+            } else if (hasElement('Fe') && hasLiquid('Acid') && !isReactionActive('Fe+Acid') && !chemistryLab.completedReactions.has('Fe+Acid')) {
+                triggerReaction('Fe+Acid', 'Iron + Acid', '🫧 Iron dissolves in acid, producing hydrogen gas and iron chloride.', '#ffa500', 4000);
+            } else if (hasElement('Cu') && hasLiquid('Acid') && !isReactionActive('Cu+Acid') && !isReactionCompleted('Cu+Acid')) {
+                triggerReaction('Cu+Acid', 'Copper + Acid', '🫧 Copper reacts slowly with acid, producing copper chloride and hydrogen gas.', '#32cd32', 6000);
+            } else if (hasElement('Ag') && hasLiquid('Acid') && !isReactionActive('Ag+Acid') && !isReactionCompleted('Ag+Acid')) {
+                triggerReaction('Ag+Acid', 'Silver + Acid', '✨ Silver is resistant to most acids. No visible reaction.', '#c0c0c0', 3000);
+            } else if (hasElement('H') && hasElement('O') && chemistryLab.temperature > 100 && !isReactionActive('H+O') && !isReactionCompleted('H+O')) {
+                triggerReaction('H+O', 'Hydrogen + Oxygen (Hot)', '💥 Combustion reaction! Hydrogen and oxygen combine to form water vapor.', '#ff4500', 8000);
+            } else if (hasLiquid('Acid') && hasLiquid('Base') && !isReactionActive('Acid+Base') && !isReactionCompleted('Acid+Base')) {
+                triggerReaction('Acid+Base', 'Acid + Base', '🧪 Neutralization reaction! Acid and base neutralize each other, forming salt and water.', '#9370db', 5000);
+            } else if (hasElement('Na') && hasLiquid('Acid') && !isReactionActive('Na+Acid') && !isReactionCompleted('Na+Acid')) {
+                triggerReaction('Na+Acid', 'Sodium + Acid', '💥 Violent reaction! Sodium reacts explosively with acid, producing hydrogen gas and sodium chloride.', '#ff0000', 6000);
+            } else if (hasElement('Fe') && hasElement('O') && chemistryLab.temperature > 50 && !isReactionActive('Fe+O')) {
+                triggerReaction('Fe+O', 'Iron + Oxygen (Hot)', '🔥 Oxidation reaction! Iron rusts when exposed to oxygen at high temperature.', '#8b4513', 4000);
+            } else if (hasElement('C') && hasElement('O') && chemistryLab.temperature > 200 && !isReactionActive('C+O')) {
+                triggerReaction('C+O', 'Carbon + Oxygen (Very Hot)', '🔥 Combustion! Carbon burns in oxygen to form carbon dioxide.', '#ff4500', 7000);
+            } else if (hasElement('S') && hasLiquid('Water') && !isReactionActive('S+Water')) {
+                triggerReaction('S+Water', 'Sulfur + Water', '💧 Sulfur dissolves slightly in water, forming a weak acid.', '#f39c12', 3000);
+            } else if (hasElement('P') && hasElement('O') && chemistryLab.temperature > 30 && !isReactionActive('P+O')) {
+                triggerReaction('P+O', 'Phosphorus + Oxygen', '🔥 Phosphorus ignites in oxygen, producing phosphorus pentoxide.', '#ff6347', 5000);
+            } else if (hasElement('K') && hasLiquid('Water') && !isReactionActive('K+Water')) {
+                triggerReaction('K+Water', 'Potassium + Water', '💥 Even more explosive than sodium! Potassium reacts violently with water, producing hydrogen gas and potassium hydroxide.', '#ff1493', 6000);
+            } else if (hasElement('Ca') && hasLiquid('Water') && !isReactionActive('Ca+Water')) {
+                triggerReaction('Ca+Water', 'Calcium + Water', '🫧 Calcium reacts with water, producing hydrogen gas and calcium hydroxide.', '#ffb6c1', 4000);
+            } else if (hasElement('Mg') && hasLiquid('Acid') && !isReactionActive('Mg+Acid')) {
+                triggerReaction('Mg+Acid', 'Magnesium + Acid', '🫧 Magnesium dissolves in acid, producing hydrogen gas and magnesium chloride.', '#dda0dd', 5000);
+            } else if (hasElement('K') && hasLiquid('Acid') && !isReactionActive('K+Acid')) {
+                triggerReaction('K+Acid', 'Potassium + Acid', '💥 Extremely violent reaction! Potassium explodes in acid, producing hydrogen gas and potassium chloride.', '#ff0000', 7000);
+            } else if (hasElement('Na') && hasElement('Cl') && chemistryLab.temperature > 50 && !isReactionActive('Na+Cl')) {
+                triggerReaction('Na+Cl', 'Sodium + Chlorine', '🧂 Formation of table salt! Sodium and chlorine combine to form sodium chloride.', '#ffffff', 4000);
+            } else if (hasElement('Fe') && hasElement('Cl') && chemistryLab.temperature > 100 && !isReactionActive('Fe+Cl')) {
+                triggerReaction('Fe+Cl', 'Iron + Chlorine', '🔥 Iron burns in chlorine gas, producing iron(III) chloride.', '#8b4513', 5000);
+            } else if (hasElement('Mg') && hasElement('O') && chemistryLab.temperature > 400 && !isReactionActive('Mg+O')) {
+                triggerReaction('Mg+O', 'Magnesium + Oxygen (Very Hot)', '💥 Bright white flame! Magnesium burns brilliantly in oxygen, producing magnesium oxide.', '#ffffff', 6000);
+            } else if (hasLiquid('Alcohol') && hasElement('Na') && !isReactionActive('Alcohol+Na') && !isReactionCompleted('Alcohol+Na')) {
+                triggerReaction('Alcohol+Na', 'Alcohol + Sodium', '🫧 Sodium reacts with alcohol, producing hydrogen gas and sodium ethoxide.', '#ffd93d', 4000);
+            } else if (hasLiquid('Alcohol') && hasElement('K') && !isReactionActive('Alcohol+K')) {
+                triggerReaction('Alcohol+K', 'Alcohol + Potassium', '💥 Violent reaction! Potassium reacts explosively with alcohol, producing hydrogen gas and potassium ethoxide.', '#ff1493', 5000);
+            } else if (hasLiquid('Alcohol') && hasElement('Ca') && !isReactionActive('Alcohol+Ca')) {
+                triggerReaction('Alcohol+Ca', 'Alcohol + Calcium', '🫧 Calcium reacts with alcohol, producing hydrogen gas and calcium ethoxide.', '#ffb6c1', 4000);
+            } else if (hasLiquid('Alcohol') && hasElement('Mg') && !isReactionActive('Alcohol+Mg')) {
+                triggerReaction('Alcohol+Mg', 'Alcohol + Magnesium', '🫧 Magnesium reacts slowly with alcohol, producing hydrogen gas and magnesium ethoxide.', '#dda0dd', 5000);
+            } else if (hasLiquid('Alcohol') && hasElement('Fe') && chemistryLab.temperature > 100 && !isReactionActive('Alcohol+Fe')) {
+                triggerReaction('Alcohol+Fe', 'Alcohol + Iron (Hot)', '🔥 Iron catalyzes alcohol oxidation at high temperature, producing aldehydes.', '#8b4513', 4000);
+            } else if (hasLiquid('Alcohol') && hasElement('Cu') && chemistryLab.temperature > 150 && !isReactionActive('Alcohol+Cu')) {
+                triggerReaction('Alcohol+Cu', 'Alcohol + Copper (Hot)', '🔥 Copper catalyzes alcohol dehydrogenation, producing aldehydes and hydrogen.', '#cd7f32', 5000);
+            } else if (hasLiquid('Alcohol') && hasElement('O') && chemistryLab.temperature > 200 && !isReactionActive('Alcohol+O')) {
+                triggerReaction('Alcohol+O', 'Alcohol + Oxygen (Hot)', '🔥 Combustion! Alcohol burns in oxygen, producing carbon dioxide and water.', '#ff4500', 6000);
+            } else if (hasLiquid('Alcohol') && hasLiquid('Acid') && chemistryLab.temperature > 80 && !isReactionActive('Alcohol+Acid')) {
+                triggerReaction('Alcohol+Acid', 'Alcohol + Acid (Hot)', '🧪 Esterification reaction! Alcohol and acid combine to form an ester and water.', '#9370db', 5000);
+            } else if (hasLiquid('Base') && hasElement('Na') && !isReactionActive('Base+Na')) {
+                triggerReaction('Base+Na', 'Base + Sodium', '💥 Violent reaction! Sodium reacts explosively with base, producing hydrogen gas.', '#ff0000', 5000);
+            } else if (hasLiquid('Base') && hasElement('K') && !isReactionActive('Base+K')) {
+                triggerReaction('Base+K', 'Base + Potassium', '💥 Extremely violent! Potassium explodes in base, producing hydrogen gas.', '#ff0000', 6000);
+            } else if (hasLiquid('Base') && hasElement('Ca') && !isReactionActive('Base+Ca')) {
+                triggerReaction('Base+Ca', 'Base + Calcium', '🫧 Calcium reacts with base, producing hydrogen gas and calcium hydroxide.', '#ffb6c1', 4000);
+            } else if (hasLiquid('Base') && hasElement('Mg') && !isReactionActive('Base+Mg')) {
+                triggerReaction('Base+Mg', 'Base + Magnesium', '🫧 Magnesium reacts with base, producing hydrogen gas and magnesium hydroxide.', '#dda0dd', 4000);
+            } else if (hasLiquid('Base') && hasElement('Fe') && chemistryLab.temperature > 50 && !isReactionActive('Base+Fe')) {
+                triggerReaction('Base+Fe', 'Base + Iron (Hot)', '🫧 Iron reacts with hot base, producing hydrogen gas and iron hydroxide.', '#8b4513', 4000);
+            } else if (hasLiquid('Base') && hasElement('Cu') && chemistryLab.temperature > 100 && !isReactionActive('Base+Cu')) {
+                triggerReaction('Base+Cu', 'Base + Copper (Hot)', '🫧 Copper reacts with hot base, producing copper hydroxide.', '#cd7f32', 4000);
+            } else if (hasLiquid('Water') && hasElement('Cl') && chemistryLab.temperature > 20 && !isReactionActive('Water+Cl')) {
+                triggerReaction('Water+Cl', 'Water + Chlorine', '🧪 Chlorine dissolves in water, forming hypochlorous acid and hydrochloric acid.', '#6bcf7f', 4000);
+            } else if (hasLiquid('Water') && hasElement('N') && chemistryLab.temperature > 50 && !isReactionActive('Water+N')) {
+                triggerReaction('Water+N', 'Water + Nitrogen (Hot)', '🫧 Nitrogen dissolves slightly in hot water, forming weak nitric acid.', '#3498db', 3000);
+            } else if (hasLiquid('Water') && hasElement('S') && chemistryLab.temperature > 30 && !isReactionActive('Water+S')) {
+                triggerReaction('Water+S', 'Water + Sulfur (Hot)', '💧 Sulfur dissolves slightly in hot water, forming weak sulfuric acid.', '#f39c12', 3000);
+            } else if (hasLiquid('Water') && hasElement('P') && chemistryLab.temperature > 40 && !isReactionActive('Water+P')) {
+                triggerReaction('Water+P', 'Water + Phosphorus (Hot)', '💧 Phosphorus reacts with hot water, forming phosphoric acid.', '#e74c3c', 4000);
+            } else if (hasElement('C') && hasElement('H') && chemistryLab.temperature > 300 && !isReactionActive('C+H')) {
+                triggerReaction('C+H', 'Carbon + Hydrogen (Very Hot)', '🔥 Carbon and hydrogen combine at high temperature, forming methane gas.', '#2c3e50', 5000);
+            } else if (hasElement('N') && hasElement('H') && chemistryLab.temperature > 400 && !isReactionActive('N+H')) {
+                triggerReaction('N+H', 'Nitrogen + Hydrogen (Very Hot)', '🔥 Nitrogen and hydrogen combine at high temperature, forming ammonia gas.', '#3498db', 6000);
+            } else if (hasElement('S') && hasElement('H') && chemistryLab.temperature > 200 && !isReactionActive('S+H')) {
+                triggerReaction('S+H', 'Sulfur + Hydrogen (Hot)', '🔥 Sulfur and hydrogen combine at high temperature, forming hydrogen sulfide gas.', '#f39c12', 4000);
+            } else if (hasElement('Cl') && hasElement('H') && chemistryLab.temperature > 100 && !isReactionActive('Cl+H')) {
+                triggerReaction('Cl+H', 'Chlorine + Hydrogen (Hot)', '💥 Explosive reaction! Chlorine and hydrogen combine to form hydrogen chloride gas.', '#6bcf7f', 3000);
+            } else if (hasElement('Au') && hasLiquid('Acid') && chemistryLab.temperature > 150 && !isReactionActive('Au+Acid')) {
+                triggerReaction('Au+Acid', 'Gold + Acid (Hot)', '✨ Gold is resistant to most acids, even at high temperature. No visible reaction.', '#ffd700', 2000);
+            } else if (hasElement('Ag') && hasLiquid('Base') && chemistryLab.temperature > 100 && !isReactionActive('Ag+Base')) {
+                triggerReaction('Ag+Base', 'Silver + Base (Hot)', '✨ Silver is resistant to most bases, even at high temperature. No visible reaction.', '#c0c0c0', 2000);
+            } else if (hasLiquid('Water') && hasLiquid('Acid') && chemistryLab.temperature > 50 && !isReactionActive('Water+Acid')) {
+                triggerReaction('Water+Acid', 'Water + Acid (Hot)', '🧪 Dilution reaction! Acid dissolves in water, forming a diluted solution.', '#ff6b6b', 3000);
+            } else if (hasLiquid('Water') && hasLiquid('Base') && chemistryLab.temperature > 50 && !isReactionActive('Water+Base')) {
+                triggerReaction('Water+Base', 'Water + Base (Hot)', '🧪 Dilution reaction! Base dissolves in water, forming a diluted solution.', '#ffeb3b', 3000);
+            } else if (hasLiquid('Water') && hasLiquid('Alcohol') && chemistryLab.temperature > 30 && !isReactionActive('Water+Alcohol')) {
+                triggerReaction('Water+Alcohol', 'Water + Alcohol (Warm)', '🧪 Miscibility! Water and alcohol mix completely, forming a homogeneous solution.', '#87ceeb', 3000);
+            } else if (hasElement('Na') && hasElement('K') && chemistryLab.temperature > 100 && !isReactionActive('Na+K')) {
+                triggerReaction('Na+K', 'Sodium + Potassium (Hot)', '💥 Alloy formation! Sodium and potassium combine to form a liquid alloy.', '#ff69b4', 4000);
+            } else if (hasElement('Fe') && hasElement('Cu') && chemistryLab.temperature > 500 && !isReactionActive('Fe+Cu')) {
+                triggerReaction('Fe+Cu', 'Iron + Copper (Very Hot)', '🔥 Alloy formation! Iron and copper combine to form bronze alloy.', '#cd7f32', 5000);
+            } else if (hasElement('Ag') && hasElement('Au') && chemistryLab.temperature > 600 && !isReactionActive('Ag+Au')) {
+                triggerReaction('Ag+Au', 'Silver + Gold (Very Hot)', '✨ Alloy formation! Silver and gold combine to form electrum alloy.', '#ffd700', 4000);
+            } else if (hasElement('C') && hasElement('S') && chemistryLab.temperature > 200 && !isReactionActive('C+S')) {
+                triggerReaction('C+S', 'Carbon + Sulfur (Hot)', '🔥 Carbon and sulfur combine to form carbon disulfide.', '#f39c12', 4000);
+            } else if (hasElement('P') && hasElement('Cl') && chemistryLab.temperature > 50 && !isReactionActive('P+Cl')) {
+                triggerReaction('P+Cl', 'Phosphorus + Chlorine', '💥 Phosphorus reacts violently with chlorine, forming phosphorus trichloride.', '#6bcf7f', 4000);
+            } else if (hasElement('S') && hasElement('Cl') && chemistryLab.temperature > 100 && !isReactionActive('S+Cl')) {
+                triggerReaction('S+Cl', 'Sulfur + Chlorine (Hot)', '🔥 Sulfur reacts with chlorine, forming sulfur dichloride.', '#6bcf7f', 4000);
+            } else if (hasElement('N') && hasElement('O') && chemistryLab.temperature > 2000 && !isReactionActive('N+O')) {
+                triggerReaction('N+O', 'Nitrogen + Oxygen (Extreme Heat)', '🔥 Nitrogen and oxygen combine at extreme temperature, forming nitrogen oxides.', '#ff4500', 7000);
+            }
+        }
+
+        function hasElement(symbol) {
+            return chemistryLab.contents.some(item => item.type === 'element' && item.symbol === symbol);
+        }
+
+        function hasLiquid(name) {
+            return chemistryLab.contents.some(item => item.type === 'liquid' && item.name === name);
+        }
+
+        function isReactionActive(reactionId) {
+            return chemistryLab.activeReactions.has(reactionId);
+        }
+
+        function isReactionCompleted(reactionId) {
+            return chemistryLab.completedReactions.has(reactionId);
+        }
+
+        function triggerReaction(reactionId, name, description, color, cooldownMs) {
+            // Add to active reactions and completed reactions
+            chemistryLab.activeReactions.add(reactionId);
+            chemistryLab.completedReactions.add(reactionId);
+            
+            // Add to reaction history
+            chemistryLab.reactions.push({ name, description, timestamp: new Date() });
+            addToLog(`🧪 ${name}: ${description}`);
+            
+            // Update container appearance with glow effect
+            const container = document.getElementById('chemistry-container');
+            container.style.background = `linear-gradient(to bottom, ${color}20 0%, #ffffff 100%)`;
+            container.style.borderColor = color;
+            container.style.animation = 'reactionGlow 2s ease-in-out';
+            
+            // Update flask visuals for reaction
+            updateFlaskVisuals();
+            
+            // Reset container appearance after 3 seconds
+            setTimeout(() => {
+                container.style.background = 'linear-gradient(to bottom, #e6f3ff 0%, #ffffff 100%)';
+                container.style.borderColor = '#4299e1';
+                container.style.animation = '';
+            }, 3000);
+            
+            // Remove from active reactions after cooldown
+            setTimeout(() => {
+                chemistryLab.activeReactions.delete(reactionId);
+                updateFlaskVisuals(); // Remove bubbles when reaction ends
+            }, cooldownMs);
+        }
+
+        function updateContainerDisplay() {
+            const content = document.getElementById('container-content');
+            if (chemistryLab.contents.length === 0) {
+                content.innerHTML = 'Drag elements and liquids here!';
+                return;
+            }
+            
+            const elements = chemistryLab.contents.filter(item => item.type === 'element');
+            const liquids = chemistryLab.contents.filter(item => item.type === 'liquid');
+            
+            let display = '';
+            if (elements.length > 0) {
+                display += `<div style="margin-bottom: 10px;"><strong>Elements:</strong> ${elements.map(e => e.symbol).join(', ')}</div>`;
+            }
+            if (liquids.length > 0) {
+                display += `<div><strong>Liquids:</strong> ${liquids.map(l => l.name).join(', ')}</div>`;
+            }
+            
+            content.innerHTML = display;
+        }
+
+        function updateFlaskVisuals() {
+            const liquidLayer = document.getElementById('liquid-layer');
+            const elementPebbles = document.getElementById('element-pebbles');
+            const bubblesContainer = document.getElementById('bubbles-container');
+            
+            const elements = chemistryLab.contents.filter(item => item.type === 'element');
+            const liquids = chemistryLab.contents.filter(item => item.type === 'liquid');
+            
+            // Update liquid level
+            if (liquids.length > 0) {
+                const liquidHeight = Math.min(60 + (liquids.length * 10), 80); // Max 80% height
+                liquidLayer.style.height = liquidHeight + '%';
+                
+                // Update liquid color based on contents
+                if (liquids.some(l => l.name === 'Acid')) {
+                    liquidLayer.style.background = 'linear-gradient(to top, rgba(255, 107, 107, 0.6) 0%, rgba(255, 107, 107, 0.3) 100%)';
+                } else if (liquids.some(l => l.name === 'Base')) {
+                    liquidLayer.style.background = 'linear-gradient(to top, rgba(255, 235, 59, 0.6) 0%, rgba(255, 235, 59, 0.3) 100%)';
+                } else if (liquids.some(l => l.name === 'Alcohol')) {
+                    liquidLayer.style.background = 'linear-gradient(to top, rgba(240, 248, 255, 0.6) 0%, rgba(240, 248, 255, 0.3) 100%)';
+                } else {
+                    liquidLayer.style.background = 'linear-gradient(to top, rgba(135, 206, 235, 0.6) 0%, rgba(135, 206, 235, 0.3) 100%)';
+                }
+            } else {
+                liquidLayer.style.height = '0%';
+            }
+            
+            // Update element pebbles
+            elementPebbles.innerHTML = '';
+            elements.forEach((element, index) => {
+                const elementData = elements.find(e => e.symbol === element.symbol);
+                if (elementData) {
+                    const pebble = document.createElement('div');
+                    pebble.style.cssText = `
+                        width: 20px;
+                        height: 20px;
+                        background: ${elementData.color};
+                        border: 2px solid #333;
+                        border-radius: 50%;
+                        margin: 2px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.7rem;
+                        font-weight: bold;
+                        color: #333;
+                        position: relative;
+                        z-index: 5;
+                        animation: pebbleDrop 0.5s ease-out;
+                    `;
+                    pebble.textContent = element.symbol;
+                    elementPebbles.appendChild(pebble);
+                }
+            });
+            
+            // Add bubbles if there are reactions happening
+            if (chemistryLab.activeReactions.size > 0) {
+                addBubbles();
+            } else {
+                bubblesContainer.innerHTML = '';
+            }
+        }
+
+        function addBubbles() {
+            const bubblesContainer = document.getElementById('bubbles-container');
+            bubblesContainer.innerHTML = '';
+            
+            // Create multiple bubbles
+            for (let i = 0; i < 8; i++) {
+                const bubble = document.createElement('div');
+                bubble.style.cssText = `
+                    position: absolute;
+                    width: ${Math.random() * 8 + 4}px;
+                    height: ${Math.random() * 8 + 4}px;
+                    background: rgba(255, 255, 255, 0.7);
+                    border-radius: 50%;
+                    bottom: ${Math.random() * 30}%;
+                    left: ${Math.random() * 80}%;
+                    animation: bubbleRise ${Math.random() * 2 + 1}s linear infinite;
+                    animation-delay: ${Math.random() * 2}s;
+                `;
+                bubblesContainer.appendChild(bubble);
+            }
+        }
+
+        function updateTemperatureDisplay() {
+            document.getElementById('temperature').textContent = `${chemistryLab.temperature}°C`;
+            
+            // Update status based on temperature
+            let status = 'Ready';
+            if (chemistryLab.isHeating) status = 'Heating...';
+            else if (chemistryLab.isCooling) status = 'Cooling...';
+            else if (chemistryLab.temperature > 100) status = 'Hot!';
+            else if (chemistryLab.temperature < 0) status = 'Cold!';
+            
+            document.getElementById('reaction-status').textContent = status;
+        }
+
+        function addToLog(message) {
+            const log = document.getElementById('reaction-log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `<div style="margin-bottom: 5px;"><span style="color: #718096;">[${timestamp}]</span> ${message}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function resetChemistryLab() {
+            chemistryLab = {
+                temperature: 25,
+                contents: [],
+                reactions: [],
+                isHeating: false,
+                isCooling: false,
+                activeReactions: new Set(),
+                reactionCooldown: {},
+                completedReactions: new Set()
+            };
+            
+            updateContainerDisplay();
+            updateFlaskVisuals();
+            updateTemperatureDisplay();
+            document.getElementById('reaction-log').innerHTML = 'Welcome to the chemistry lab! Start by adding elements or liquids.';
+            
+            const container = document.getElementById('chemistry-container');
+            container.style.background = 'linear-gradient(to bottom, #e6f3ff 0%, #ffffff 100%)';
+            container.style.borderColor = '#4299e1';
+            container.style.animation = '';
+        }
+
+        function exportChemistryData() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                temperature: chemistryLab.temperature,
+                contents: chemistryLab.contents,
+                reactions: chemistryLab.reactions
+            };
+            
+            const csv = `Timestamp,Temperature,Contents,Reactions\n${data.timestamp},${data.temperature},"${JSON.stringify(data.contents)}","${JSON.stringify(data.reactions)}"`;
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'chemistry_lab_data.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+    </script>
+</body>
+</html>
